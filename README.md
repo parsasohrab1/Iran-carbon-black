@@ -1,6 +1,247 @@
 # Iran-carbon-black
 ## پروپوزال جامع پیاده‌سازی هوش مصنوعی در شرکت کربن ایران
 
+---
+
+## راه‌اندازی زیرساخت (Phase 1)
+
+پلتفرم On-Premise مبتنی بر میکروسرویس‌ها مطابق SRS حوزه ۶.
+
+### پیش‌نیاز
+- Docker Desktop / Docker Compose
+- Python 3.11+ (اختیاری، برای اسکریپت seed)
+
+### شروع سریع
+
+```powershell
+.\scripts\bootstrap.ps1
+```
+
+یا:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up -d --build
+```
+
+### نقاط دسترسی
+
+| سرویس | آدرس |
+|:---|:---|
+| **داشبورد آنلاین** | http://localhost:8080 |
+| API Gateway | http://localhost:8080/api/... |
+| Auth | http://localhost:8001/docs |
+| Ingestion | http://localhost:8002/docs |
+| Energy | http://localhost:8003/docs |
+| Supply | http://localhost:8004/docs |
+| Quality | http://localhost:8005/docs |
+| Sales | http://localhost:8006/docs |
+| Finance | http://localhost:8007/docs |
+| Demand | http://localhost:8008/docs |
+| Integration / ERP | http://localhost:8009/docs |
+| Training | http://localhost:8010/docs |
+| Ops / SLA | http://localhost:8011/docs |
+| Maturity / MLOps | http://localhost:8012/docs |
+| Grafana | http://localhost:3000 |
+| MinIO Console | http://localhost:9001 |
+| Prometheus | http://localhost:9090 |
+| MQTT | localhost:1883 |
+
+### داشبورد وب (SPA)
+
+داشبورد فارسی RTL در مسیر ریشه گیت‌وی سرو می‌شود و داده‌های اجرایی را از APIهای فاز ۱–۵ می‌گیرد.
+
+```powershell
+# توسعه محلی (Vite روی :5173 با پروکسی به :8080)
+cd web
+npm install
+npm run dev
+
+# یا فقط بیلد ایمیج داشبورد داخل استک
+docker compose up -d --build dashboard gateway
+```
+
+تب‌ها: نمای مدیریتی · انرژی · کیفیت · تقاضا/تولید · فروش/مالی · بلوغ/MLOps
+پورتال هر ۶۰ ثانیه به‌صورت خودکار تازه می‌شود.
+
+کاربر پیش‌فرض: `admin` / `Admin@ChangeMe1` — قبل از محیط واقعی رمزها را در `.env` عوض کنید.
+
+داده سنتتیک نمونه:
+
+```powershell
+python scripts/seed_synthetic.py
+```
+
+## فاز ۵ — بلوغ محصول، MLOps و مزیت رقابتی
+
+### قابلیت‌ها
+- رجیستری مدل + بازآموزی (هفتگی در prod / ساعتی در dev) و انتشار به MinIO
+- ارتقای نسخه مدل به production (`/models/{domain}/{version}/promote`)
+- بهینه‌سازی موجودی و کاهش موجودی اضافی
+- سبد گریدهای پرمارژین / specialty
+- ردیابی منافع تا هدف سالانه **۲۰۰ میلیارد ریال** و payback حدود ۲۴ ماه
+- داشبورد Grafana: Phase 5 — Maturity, MLOps & ROI
+
+### APIهای کلیدی
+
+```http
+GET  /api/v1/maturity/models
+POST /api/v1/maturity/retrain
+POST /api/v1/maturity/models/{domain}/{version}/promote
+POST /api/v1/maturity/inventory/optimize
+GET  /api/v1/maturity/portfolio
+POST /api/v1/maturity/portfolio/recommend-mix
+POST /api/v1/maturity/roi/snapshot
+GET  /api/v1/maturity/dashboard
+```
+
+```powershell
+python scripts\phase5_smoke.py
+```
+
+Maturity docs: http://localhost:8012/docs
+
+---
+
+## فاز ۴ — استقرار Production، امنیت، پشتیبان و آموزش
+
+### قابلیت‌ها
+- سخت‌سازی Auth: قفل حساب، سیاست رمز، اجبار 2FA در production، رویدادهای امنیتی
+- Rate limit + Security headers + مخفی‌سازی `/docs` در prod
+- منطقه‌بندی OT / IT / DMZ (`GET /api/v1/ops/zones`)
+- پشتیبان/بازیابی با هدف RPO≤۱h و RTO≤۲h (`scripts/backup.ps1`, `scripts/restore.ps1`)
+- سرویس آموزش و مدیریت تغییر برای رول‌اوت ۳۵۰+ نفر
+- مانیتورینگ SLA زنده + هشدار Prometheus
+- overlay تولید: `docker-compose.prod.yml`
+
+### APIهای کلیدی
+
+```http
+POST /api/v1/auth/login
+POST /api/v1/auth/password/change
+POST /api/v1/auth/2fa/setup
+GET  /api/v1/ops/status
+GET  /api/v1/ops/sla
+GET  /api/v1/ops/zones
+POST /api/v1/ops/backups/report
+GET  /api/v1/training/courses
+POST /api/v1/training/enroll
+GET  /api/v1/training/compliance
+POST /api/v1/training/surveys
+```
+
+### Production
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+.\scripts\backup.ps1
+python scripts\phase4_smoke.py
+```
+
+Grafana: **Phase 4 — Security, SLA & Training**
+
+---
+
+## فاز ۳ — فروش، مالی و یکپارچه‌سازی ERP
+
+### قابلیت‌ها
+- پیش‌بینی فروش و قیمت‌گذاری `sales-gbr-v1` (هدف ≥ ۸۵٪)
+- CRM سبک مشتریان کلیدی + مشتریان در معرض ریزش
+- پیش‌بینی جریان نقدی `finance-gbr-v1` (هدف ≥ ۸۰٪)
+- تحلیل نسبت‌های مالی و داشبورد هیئت‌مدیره (`/finance/dashboard`)
+- درگاه یکپارچه‌سازی ERP روی `/api/v1/erp/*`
+- داشبورد Grafana: Phase 3 — Sales, Finance & ERP
+
+### APIهای کلیدی
+
+```http
+POST /api/v1/sales/forecast
+POST /api/v1/sales/pricing/recommend
+GET  /api/v1/sales/crm/at-risk
+GET  /api/v1/sales/customers/{id}
+POST /api/v1/finance/cashflow/forecast
+GET  /api/v1/finance/ratios/analyze
+GET  /api/v1/finance/dashboard
+POST /api/v1/erp/sales/orders
+POST /api/v1/erp/finance/journal
+GET  /api/v1/erp/export/sales-forecasts
+GET  /api/v1/erp/openapi-contract
+```
+
+```powershell
+$env:PYTHONPATH="."
+python -m ml.sales.train_forecast
+python -m ml.finance.train_cashflow
+python scripts\phase3_smoke.py
+```
+
+Integration docs: http://localhost:8009/docs
+
+---
+
+## فاز ۲ — کیفیت، تقاضا و زنجیره تامین
+
+### قابلیت‌ها
+- مدل ناهنجاری کیفیت `quality-anomaly-rf-v1` (هدف ≥ ۹۵٪)
+- بهینه‌سازی پارامتر فرآیند کوره/راکتور (`/process/optimize`)
+- پیش‌بینی تقاضا ۱۲ گرید با افق ۱/۳/۶ ماه (`demand-gbr-v1`)
+- برنامه‌ریزی تولید + توصیه‌گر گرید
+- پیش‌بینی قیمت مواد اولیه و پیشنهاد زمان خرید (`supply-price-gbr-v1`)
+- MQTT کیفیت: `icb/quality/+/process`
+- داشبورد Grafana: Phase 2 — Quality, Demand & Supply
+
+### APIهای کلیدی
+
+```http
+POST /api/v1/quality/anomaly/check
+POST /api/v1/quality/process/optimize
+POST /api/v1/demand/forecast
+POST /api/v1/demand/forecast/all
+POST /api/v1/demand/production/plan
+POST /api/v1/demand/recommend-grade
+POST /api/v1/supply/purchase/advice
+POST /api/v1/supply/tenders/score
+```
+
+```powershell
+$env:PYTHONPATH="."
+python -m ml.quality.train_anomaly
+python -m ml.demand.train_forecast
+python -m ml.supply.train_price
+python scripts\phase2_smoke.py
+```
+
+---
+
+## فاز ۱ — پایلوت انرژی و نگهداری پیش‌بینی‌کننده
+
+### قابلیت‌ها
+- MQTT worker روی Ingestion (`icb/energy/+/sensors` و `.../consumption`)
+- شبیه‌ساز OT لبه (`edge-simulator`) برای تولید داده زنده پایلوت
+- مدل RUL واقعی (`rul-gbr-v1`) با آستانه هشدار ۳ روز (PM-02 / PM-03)
+- تصمیم برق شهری در برابر ژنراتور بر اساس تعرفه پیک (PM-04)
+- داشبورد Grafana: Phase 1 — Energy & Predictive Maintenance
+
+### APIهای کلیدی فاز ۱
+
+```http
+POST /api/v1/energy/rul/predict
+POST /api/v1/energy/rul/scan
+GET  /api/v1/energy/alerts
+POST /api/v1/energy/source/decide
+GET  /api/v1/energy/consumption/summary
+GET  /api/v1/ingestion/topics
+```
+
+آموزش مجدد مدل:
+
+```powershell
+$env:PYTHONPATH="."
+python -m ml.energy.train_rul
+```
+
+---
+
 ### یکپارچه‌سازی هفت حوزه فرآیندی با رویکرد تحول دیجیتال و تولید هوشمند
 
 ---

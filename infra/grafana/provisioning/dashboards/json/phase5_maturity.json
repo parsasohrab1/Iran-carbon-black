@@ -1,0 +1,124 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "title": "Maturity %",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT maturity_pct FROM maturity.roi_snapshots ORDER BY created_at DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Annual benefits (IRR)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT annual_benefits_irr FROM maturity.roi_snapshots ORDER BY created_at DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Payback months",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT payback_months FROM maturity.roi_snapshots ORDER BY created_at DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Production models",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS n FROM maturity.model_registry WHERE status='production';",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Model registry",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT domain, model_name, version, status, trained_at, promoted_at FROM maturity.model_registry ORDER BY trained_at DESC;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Retrain jobs",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT id, domain, status, started_at, finished_at, trigger_source, error_message FROM maturity.retrain_jobs ORDER BY created_at DESC LIMIT 30;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Inventory actions",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT created_at, product_grade, action, quantity_kg, expected_saving_irr, reason FROM maturity.inventory_actions ORDER BY created_at DESC LIMIT 40;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "High-margin portfolio",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT product_grade, margin_score, strategic_flag, specialty_tag, target_share_pct FROM maturity.grade_portfolio ORDER BY margin_score DESC;",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["phase5", "mlops", "roi", "inventory"],
+  "time": { "from": "now-30d", "to": "now" },
+  "title": "Phase 5 — Maturity, MLOps & ROI",
+  "uid": "icb-phase5-maturity",
+  "version": 1
+}

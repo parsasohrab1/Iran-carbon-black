@@ -1,0 +1,124 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "title": "MTD sales revenue (IRR)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COALESCE(SUM(total_price_irr),0) AS mtd_revenue FROM sales.orders WHERE sale_date >= date_trunc('month', CURRENT_DATE);",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "CRM at-risk customers",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS at_risk FROM sales.customer_profiles WHERE churn_risk >= 0.2;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Latest cashflow net",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT net_cashflow FROM finance.cashflow_forecasts ORDER BY created_at DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "ERP sync (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS syncs FROM integration.erp_sync_log WHERE created_at > NOW() - INTERVAL '24 hours';",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Sales forecasts",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT forecast_date, grade, months_ahead, forecast_quantity_kg, forecast_revenue_irr, recommended_unit_price, confidence FROM sales.forecasts ORDER BY created_at DESC LIMIT 20;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Cashflow forecasts",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT forecast_date, horizon_days, projected_inflow, projected_outflow, net_cashflow, liquidity_risk FROM finance.cashflow_forecasts ORDER BY created_at DESC LIMIT 20;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Customer churn risk",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT c.name, p.churn_risk, p.lifetime_value_irr, p.preferred_grades FROM sales.customer_profiles p JOIN sales.customers c ON c.id = p.customer_id ORDER BY p.churn_risk DESC;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "ERP sync log",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT created_at, direction, entity_type, external_id, status FROM integration.erp_sync_log ORDER BY created_at DESC LIMIT 30;",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["phase3", "sales", "finance", "erp"],
+  "time": { "from": "now-7d", "to": "now" },
+  "title": "Phase 3 — Sales, Finance & ERP",
+  "uid": "icb-phase3-biz",
+  "version": 1
+}

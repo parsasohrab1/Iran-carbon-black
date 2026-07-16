@@ -1,0 +1,96 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "title": "Anomaly events (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS anomalies FROM quality.anomaly_events WHERE is_anomaly AND detected_at > NOW() - INTERVAL '24 hours';",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Demand forecasts (latest)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT DISTINCT ON (product_grade) product_grade, forecast_period, forecast_quantity_kg, confidence_lower, confidence_upper, model_version, forecast_date FROM demand.forecasts ORDER BY product_grade, created_at DESC;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Production plans by margin",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT product_grade, planned_quantity_kg, safety_stock_kg, production_line, margin_score, start_date, status FROM demand.production_plans WHERE plan_date = CURRENT_DATE ORDER BY margin_score DESC NULLS LAST;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Feedstock price forecasts",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT material, horizon_days, predicted_price_irr, trend, recommendation, confidence, created_at FROM supply.price_forecasts ORDER BY created_at DESC LIMIT 20;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "N220 process reactor temp",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT time AS \"time\", reactor_temp FROM quality.process_readings WHERE batch_id LIKE '%0042%' OR batch_id IN (SELECT batch_id FROM quality.batches WHERE grade='N220' ORDER BY started_at DESC LIMIT 1) ORDER BY 1 DESC LIMIT 200;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Recent process recommendations",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT created_at, batch_id, grade, expected_defect_reduction, model_version, rationale FROM quality.process_recommendations ORDER BY created_at DESC LIMIT 20;",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["phase2", "quality", "demand", "supply"],
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "Phase 2 — Quality, Demand & Supply",
+  "uid": "icb-phase2-ops",
+  "version": 1
+}

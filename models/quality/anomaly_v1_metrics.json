@@ -1,0 +1,5 @@
+{
+  "accuracy": 0.9975,
+  "f1": 0.9949238578680203,
+  "model_version": "quality-anomaly-rf-v1"
+}

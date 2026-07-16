@@ -1,0 +1,71 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: auth
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["auth:8001"]
+
+  - job_name: ingestion
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["ingestion:8002"]
+
+  - job_name: energy
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["energy:8003"]
+
+  - job_name: supply
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["supply:8004"]
+
+  - job_name: quality
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["quality:8005"]
+
+  - job_name: sales
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["sales:8006"]
+
+  - job_name: finance
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["finance:8007"]
+
+  - job_name: demand
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["demand:8008"]
+
+  - job_name: integration
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["integration:8009"]
+
+  - job_name: training
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["training:8010"]
+
+  - job_name: ops
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["ops:8011"]
+
+  - job_name: maturity
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["maturity:8012"]

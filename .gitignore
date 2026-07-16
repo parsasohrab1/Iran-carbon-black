@@ -1,0 +1,59 @@
+# Environment & secrets
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Frontend
+node_modules/
+web/dist/
+
+# Data & runtime
+data/minio/
+data/postgres/
+data/redis/
+data/mosquitto/
+data/prometheus/
+data/grafana/
+backups/
+*.log
+tmp/
+.cache/
+
+# ML artifacts
+models/**/*.pkl
+models/**/*.onnx
+!models/**/.gitkeep
+!models/energy/rul_v1_metrics.json
+!models/quality/anomaly_v1_metrics.json
+!models/demand/forecast_v1_metrics.json
+!models/supply/price_v1_metrics.json
+!models/sales/forecast_v1_metrics.json
+!models/finance/cashflow_v1_metrics.json
+
+# OS
+Thumbs.db
+Desktop.ini

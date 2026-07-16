@@ -1,0 +1,89 @@
+# Production overlay — security hardening, no public docs, enforced 2FA
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  gateway:
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/default.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - dashboard
+      - auth
+      - ingestion
+      - energy
+      - supply
+      - quality
+      - sales
+      - finance
+      - demand
+      - integration
+      - training
+      - ops
+      - maturity
+
+  auth:
+    environment:
+      ENVIRONMENT: production
+      AUTH_2FA_ENABLED: "true"
+      AUTH_2FA_REQUIRED: "true"
+      NETWORK_ZONE: it
+      RATE_LIMIT_PER_MINUTE: "60"
+
+  ingestion:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: ot
+
+  energy:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: ot
+
+  supply:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  quality:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: ot
+
+  sales:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  finance:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  demand:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  integration:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: dmz
+
+  training:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  ops:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  maturity:
+    environment:
+      ENVIRONMENT: production
+      NETWORK_ZONE: it
+
+  # Disable edge simulator in production by default
+  edge-simulator:
+    profiles: ["dev-sim"]

@@ -1,0 +1,24 @@
+{
+  "datalake": {
+    "buckets": {
+      "datalake-raw": {
+        "description": "Immutable landing zone for OT/IT events",
+        "partitions": ["energy/sensors", "quality/batches", "sales/orders", "supply/orders", "finance/reports", "demand/forecasts"]
+      },
+      "datalake-curated": {
+        "description": "Cleaned, schema-validated datasets for analytics/ML",
+        "partitions": ["energy", "quality", "sales", "supply", "finance", "demand"]
+      },
+      "ml-models": {
+        "description": "Versioned model artifacts (joblib/onnx)",
+        "partitions": ["energy/rul", "quality/anomaly", "demand/forecast", "sales/forecast", "supply/price"]
+      }
+    },
+    "retention": {
+      "raw_years": 5,
+      "curated_years": 5,
+      "rpo_hours": 1,
+      "rto_hours": 2
+    }
+  }
+}

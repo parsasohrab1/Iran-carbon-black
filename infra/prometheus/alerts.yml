@@ -1,0 +1,27 @@
+groups:
+  - name: icb-sla
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ICB service target is down"
+          description: "{{ $labels.job }} has been down for more than 2 minutes (RTO budget 2h)."
+
+      - alert: HighErrorRate
+        expr: sum(rate(icb_http_requests_total{status=~"5.."}[5m])) by (service) / sum(rate(icb_http_requests_total[5m])) by (service) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx rate on {{ $labels.service }}"
+
+      - alert: RateLimitedSpike
+        expr: sum(rate(icb_http_rate_limited_total[5m])) by (service) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limiting engaged on {{ $labels.service }}"
