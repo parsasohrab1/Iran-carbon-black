@@ -52,6 +52,10 @@ export type ScenarioSummary = {
   purchase_queue_risk: string;
   balance_score: number;
   policy_fa: string;
+  estimated_revenue_irr?: number;
+  estimated_feed_cost_irr?: number;
+  estimated_gross_profit_irr?: number;
+  estimated_profit_irr?: number;
 };
 
 export type MarketScenarioBoard = {
@@ -257,6 +261,16 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
   const warehouse_risk = total_excess > 250000 ? "بالا" : total_excess > 100000 ? "متوسط" : "کم";
   const sales_queue_risk = total_queue > 80000 ? "متوسط" : "کم";
   const purchase_queue_risk = cost > 1.15 ? "متوسط" : "کم";
+  const avgSell = 185000;
+  const feedPrice = current.feedstock_basket_irr;
+  const estimated_revenue_irr = Math.round(total_produce * avgSell);
+  const estimated_feed_cost_irr = Math.round(total_feed * feedPrice);
+  const estimated_gross_profit_irr = Math.round(
+    grades.reduce((s, g) => s + g.planned_produce_kg * avgSell * g.adjusted_margin, 0),
+  );
+  const estimated_profit_irr = Math.round(
+    estimated_gross_profit_irr - estimated_feed_cost_irr * 0.045 - estimated_revenue_irr * 0.035,
+  );
   const summary: ScenarioSummary = {
     total_produce_kg: total_produce,
     total_sales_queue_kg: total_queue,
@@ -268,10 +282,21 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
     purchase_queue_risk,
     balance_score: 100 - (warehouse_risk === "بالا" ? 10 : 5) - (sales_queue_risk === "متوسط" ? 6 : 0),
     policy_fa: "اولویت ۱: پوشش صف فروش · اولویت ۲: عدم انبار · اولویت ۳: خرید مواد فقط برای برنامه",
+    estimated_revenue_irr,
+    estimated_feed_cost_irr,
+    estimated_gross_profit_irr,
+    estimated_profit_irr,
   };
 
   const comparisons: ScenarioComparison[] = PRESETS.map((p) => {
     const scoreAdj = Math.abs(p.feedstock_delta_pct) / 4 + Math.abs(p.usd_irr_delta_pct) / 8;
+    const feedAdj = 1 + p.feedstock_delta_pct / 100;
+    const usdAdj = 1 + p.usd_irr_delta_pct / 100;
+    // Soft adjust profit vs baseline for offline preset comparison
+    const profitAdj =
+      estimated_profit_irr * (1 + (usdAdj - 1) * 0.35 - (feedAdj - 1) * 0.55);
+    const grossAdj =
+      estimated_gross_profit_irr * (1 + (usdAdj - 1) * 0.3 - (feedAdj - 1) * 0.4);
     return {
       id: p.id,
       name_fa: p.name_fa,
@@ -295,6 +320,10 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
       summary: {
         ...summary,
         balance_score: Math.max(60, Math.round(summary.balance_score - (p.id === scenarioId ? 0 : scoreAdj))),
+        estimated_profit_irr: Math.round(profitAdj),
+        estimated_gross_profit_irr: Math.round(grossAdj),
+        estimated_feed_cost_irr: Math.round(estimated_feed_cost_irr * feedAdj),
+        estimated_revenue_irr: Math.round(estimated_revenue_irr * (0.97 + usdAdj * 0.03)),
       },
       top_grades: grades.slice(0, 3).map((g) => g.product_grade),
       recommended: p.id === "soft_landing" || p.id === "baseline",

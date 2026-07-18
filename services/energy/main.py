@@ -24,6 +24,15 @@ from shared.equipment_catalog import (
     evaluate_equipment,
     simulate_reading,
 )
+from shared.process_advisor import (
+    apply_recommendation,
+    enrich_alerts,
+    get_autopilot,
+    recent_actions,
+    run_autopilot_pass,
+    set_autopilot,
+)
+from shared.rul_components import build_component_rul_board, maintenance_alert_rows
 from services.energy.optimizer import Tariff, choose_energy_source
 from services.energy.rul_model import load_rul_artifact, predict_rul_from_sensors
 
@@ -89,6 +98,27 @@ class SourceDecisionRequest(BaseModel):
 
 class AcknowledgeRequest(BaseModel):
     alert_id: int
+
+
+class AutopilotRequest(BaseModel):
+    enabled: bool
+
+
+class ProcessAdviceApplyRequest(BaseModel):
+    equipment_id: str
+    sensor_key: str
+    measured_value: float | None = None
+    value: float | None = None
+    min_op: float = 0
+    max_op: float = 0
+    unit: str | None = None
+    severity: str = "warning"
+    message: str = ""
+    equipment_name: str | None = None
+    sensor_name: str | None = None
+    action_id: str | None = None
+    mode: str = Field(default="manual", pattern="^(manual|auto)$")
+    operator: str = "operator"
 
 
 async def _latest_sensor_features(db: AsyncSession, equipment_id: str, lookback_hours: int) -> dict[str, float]:
@@ -263,7 +293,112 @@ async def list_alerts(open_only: bool = True, limit: int = 50, db: AsyncSession 
         query += " WHERE acknowledged = FALSE"
     query += " ORDER BY created_at DESC LIMIT :limit"
     result = await db.execute(text(query), {"limit": limit})
-    return [dict(r) for r in result.mappings().all()]
+    rows = [dict(r) for r in result.mappings().all()]
+    # Merge live component RUL alerts so UI always has belt/oil/air coverage
+    live = maintenance_alert_rows()
+    existing_keys = {(r.get("equipment_id"), r.get("alert_type"), round(float(r.get("rul_days") or 0), 0)) for r in rows}
+    for a in live:
+        key = (a["equipment_id"], a["alert_type"], round(float(a["rul_days"]), 0))
+        if key in existing_keys:
+            continue
+        rows.append(
+            {
+                "id": f"live-{a['component_id']}",
+                "equipment_id": a["equipment_id"],
+                "equipment_name": a.get("equipment_name"),
+                "alert_type": a["alert_type"],
+                "severity": a["severity"],
+                "rul_days": a["rul_days"],
+                "failure_probability": a["failure_probability"],
+                "message": a["message"],
+                "acknowledged": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "component_type": a.get("component_type"),
+                "component_type_fa": a.get("component_type_fa"),
+                "component_name_fa": a.get("component_name_fa"),
+                "recommended_action_fa": a.get("recommended_action_fa"),
+                "failure_mode_fa": a.get("failure_mode_fa"),
+            }
+        )
+    rows.sort(key=lambda r: float(r.get("rul_days") or 999))
+    return rows[:limit]
+
+
+@router.get("/rul/components")
+async def rul_components(alert_only: bool = False) -> dict:
+    """Component RUL board: belts, oil, air, bearings, filters, motors."""
+    return build_component_rul_board(alert_only=alert_only)
+
+
+@router.post("/rul/components/scan")
+async def rul_components_scan(db: AsyncSession = Depends(get_db)) -> dict:
+    """Estimate component RUL and persist open maintenance alerts."""
+    board = build_component_rul_board()
+    # ensure equipment rows exist for FK
+    for eq in EQUIPMENT:
+        await db.execute(
+            text(
+                """
+                INSERT INTO energy.equipment (id, name, name_fa, equipment_type, location, line_id, area, status)
+                VALUES (:id, :name, :name_fa, :etype, :loc, :line, :area, 'running')
+                ON CONFLICT (id) DO UPDATE SET name_fa = COALESCE(EXCLUDED.name_fa, energy.equipment.name_fa)
+                """
+            ),
+            {
+                "id": eq["id"],
+                "name": eq.get("name_en") or eq["name_fa"],
+                "name_fa": eq["name_fa"],
+                "etype": eq["equipment_type"],
+                "loc": eq["location"],
+                "line": eq["line_id"],
+                "area": eq["area"],
+            },
+        )
+    inserted = 0
+    for a in board.get("alerts") or []:
+        exists = await db.execute(
+            text(
+                """
+                SELECT id FROM energy.maintenance_alerts
+                WHERE equipment_id = CAST(:eid AS VARCHAR)
+                  AND alert_type = CAST(:atype AS VARCHAR)
+                  AND acknowledged = FALSE
+                  AND created_at > NOW() - INTERVAL '12 hours'
+                LIMIT 1
+                """
+            ),
+            {"eid": a["equipment_id"], "atype": a["alert_type"]},
+        )
+        if exists.first():
+            continue
+        await db.execute(
+            text(
+                """
+                INSERT INTO energy.maintenance_alerts (
+                    equipment_id, alert_type, severity, rul_days, failure_probability, message
+                ) VALUES (
+                    CAST(:eid AS VARCHAR), CAST(:atype AS VARCHAR), CAST(:sev AS VARCHAR),
+                    CAST(:rul AS DOUBLE PRECISION), CAST(:fp AS DOUBLE PRECISION), CAST(:msg AS TEXT)
+                )
+                """
+            ),
+            {
+                "eid": a["equipment_id"],
+                "atype": a["alert_type"],
+                "sev": a["severity"],
+                "rul": a["rul_days"],
+                "fp": a["failure_probability"],
+                "msg": a["message"],
+            },
+        )
+        inserted += 1
+    await db.commit()
+    return {
+        "scanned": board["summary"]["component_count"],
+        "alerts": board["summary"]["alert_count"],
+        "inserted": inserted,
+        "board": board,
+    }
 
 
 @router.post("/alerts/acknowledge")
@@ -529,10 +664,12 @@ async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
                         INSERT INTO energy.process_alerts (
                             equipment_id, sensor_key, severity, measured_value, min_op, max_op, unit, message
                         )
-                        SELECT :eid, :key, :sev, :val, :min_op, :max_op, :unit, :msg
+                        SELECT CAST(:eid AS VARCHAR), CAST(:key AS VARCHAR), CAST(:sev AS VARCHAR),
+                               CAST(:val AS DOUBLE PRECISION), CAST(:min_op AS DOUBLE PRECISION),
+                               CAST(:max_op AS DOUBLE PRECISION), CAST(:unit AS VARCHAR), CAST(:msg AS TEXT)
                         WHERE NOT EXISTS (
                             SELECT 1 FROM energy.process_alerts
-                            WHERE equipment_id = :eid AND sensor_key = :key
+                            WHERE equipment_id = CAST(:eid AS VARCHAR) AND sensor_key = CAST(:key AS VARCHAR)
                               AND acknowledged = FALSE
                               AND created_at > NOW() - INTERVAL '1 hour'
                         )
@@ -564,18 +701,45 @@ async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
             )
         )
         stored_alerts = [dict(r) for r in open_alerts.mappings().all()]
-        # Prefer live evaluation list if DB empty
-        alerts_out = stored_alerts if stored_alerts else process_alerts
+        # Prefer live range evaluation for advisor (DB rows may lack names / stale severity)
+        raw_alerts = process_alerts if process_alerts else stored_alerts
+        # Attach catalog names onto DB rows when used
+        if raw_alerts is stored_alerts:
+            catalog = equipment_by_id()
+            for row in raw_alerts:
+                eq = catalog.get(str(row.get("equipment_id") or ""), {})
+                row.setdefault("equipment_name", eq.get("name_fa"))
+                for s in eq.get("sensors") or []:
+                    if s.get("key") == row.get("sensor_key"):
+                        row.setdefault("sensor_name", s.get("name_fa"))
+                        # upgrade severity from sensor criticality when out of range
+                        if row.get("severity") == "warning" and s.get("criticality") == "critical":
+                            row["severity"] = "critical"
+                        break
+        alerts_out = enrich_alerts(raw_alerts)
+        autopilot_result = (
+            run_autopilot_pass(alerts_out)
+            if get_autopilot()
+            else {
+                "autopilot": False,
+                "applied": [],
+                "skipped": len(alerts_out),
+                "message_fa": "Auto Pilot خاموش است",
+            }
+        )
 
         normal = sum(1 for u in units if u["op_status"] == "normal")
         warn = sum(1 for u in units if u["op_status"] == "warning")
         crit = sum(1 for u in units if u["op_status"] == "critical")
         return {
-            "source": "energy.equipment + PLC/SCADA/Data Logger + range evaluator",
+            "source": "energy.equipment + PLC/SCADA/Data Logger + range evaluator + advisor",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "equipment": units,
             "data_loggers": DATA_LOGGERS,
             "process_alerts": alerts_out,
+            "autopilot": {"enabled": get_autopilot(), **autopilot_result},
+            "recent_actions": recent_actions(12),
+            "rul_components": build_component_rul_board(),
             "summary": {
                 "equipment_count": len(units),
                 "sensor_count": sum(len(e["sensors"]) for e in EQUIPMENT),
@@ -588,10 +752,72 @@ async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
                 "plc_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "plc"),
                 "scada_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "scada"),
                 "data_logger_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "data_logger"),
+                "auto_applied_count": len(autopilot_result.get("applied") or []),
             },
         }
-    except Exception:  # noqa: BLE001
-        return fallback
+    except Exception as exc:  # noqa: BLE001
+        log.warning("equipment_board_fallback", error=str(exc))
+        fb = fallback
+        alerts = enrich_alerts(list(fb.get("process_alerts") or []))
+        ap = (
+            run_autopilot_pass(alerts)
+            if get_autopilot()
+            else {
+                "autopilot": False,
+                "applied": [],
+                "skipped": len(alerts),
+                "message_fa": "Auto Pilot خاموش است (حالت آفلاین/fallback)",
+            }
+        )
+        fb = {
+            **fb,
+            "process_alerts": alerts,
+            "autopilot": {"enabled": get_autopilot(), **ap},
+            "recent_actions": recent_actions(12),
+            "rul_components": build_component_rul_board(),
+            "summary": {
+                **(fb.get("summary") or {}),
+                "auto_applied_count": len(ap.get("applied") or []),
+            },
+        }
+        return fb
+
+
+@router.get("/process/autopilot")
+async def process_autopilot_status() -> dict:
+    return {"enabled": get_autopilot(), "recent_actions": recent_actions(20)}
+
+
+@router.post("/process/autopilot")
+async def process_autopilot_set(body: AutopilotRequest) -> dict:
+    enabled = set_autopilot(body.enabled)
+    return {
+        "enabled": enabled,
+        "message_fa": "Auto Pilot روشن شد — اقدامات واجد شرایط به‌صورت خودکار اجرا می‌شوند"
+        if enabled
+        else "Auto Pilot خاموش شد — فقط پیشنهاد دستی فعال است",
+        "recent_actions": recent_actions(20),
+    }
+
+
+@router.post("/process/advice/apply")
+async def process_advice_apply(body: ProcessAdviceApplyRequest) -> dict:
+    """Apply a smart corrective action (manual button or autopilot)."""
+    alert = body.model_dump()
+    if alert.get("value") is None and alert.get("measured_value") is not None:
+        alert["value"] = alert["measured_value"]
+    result = apply_recommendation(
+        alert,
+        action_id=body.action_id,
+        mode=body.mode,
+        operator=body.operator,
+    )
+    return result
+
+
+@router.get("/process/advice/actions")
+async def process_advice_actions(limit: int = 30) -> dict:
+    return {"actions": recent_actions(limit), "autopilot_enabled": get_autopilot()}
 
 
 app.include_router(router)

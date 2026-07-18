@@ -724,3 +724,88 @@ tr.row-active td {
     grid-template-columns: 1fr;
   }
 }
+
+/* —— Process advice + autopilot —— */
+.autopilot-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: linear-gradient(120deg, rgba(20, 18, 16, 0.04), rgba(34, 197, 94, 0.06));
+}
+
+.btn.autopilot-toggle.on {
+  background: var(--ok);
+  color: #fff;
+  border-color: transparent;
+  min-width: 8.5rem;
+}
+
+.advice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.advice-card {
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.advice-card.crit {
+  border-color: rgba(185, 28, 28, 0.35);
+  background: linear-gradient(165deg, rgba(254, 242, 242, 0.95), rgba(255, 255, 255, 0.5));
+}
+
+.advice-card.warn {
+  border-color: rgba(194, 65, 12, 0.3);
+  background: linear-gradient(165deg, rgba(255, 247, 237, 0.9), rgba(255, 255, 255, 0.5));
+}
+
+.advice-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.advice-primary {
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+}
+
+.advice-action {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0.2rem 0 0.35rem;
+}
+
+.advice-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.55rem;
+}
+
+.advice-more {
+  margin-top: 0.55rem;
+  font-size: 0.85rem;
+}
+
+.advice-more ul {
+  margin: 0.45rem 0 0;
+  padding-right: 1.1rem;
+}
+
+.advice-more li {
+  margin-bottom: 0.55rem;
+}

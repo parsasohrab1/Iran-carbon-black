@@ -371,3 +371,76 @@ export function resolveSupplierCity(
   return "\u2014";
 }
 
+export type MaterialWarehouseRisk = {
+  material_id: string;
+  name_fa: string;
+  category: string;
+  severity: "critical" | "high" | "medium" | "low";
+  severity_fa: string;
+  score: number;
+  reason_fa: string;
+  share_pct: number;
+  lead_time_days: number | null;
+  trend?: string;
+};
+
+const CRIT_SCORE: Record<string, number> = {
+  critical: 55,
+  high: 38,
+  medium: 22,
+  low: 10,
+};
+
+/** Rank raw-material warehouse / purchase risks by severity (highest first). */
+export function rankMaterialWarehouseRisks(
+  materials: ProcurementMaterial[],
+  opts?: { feedstockPressure?: number },
+): MaterialWarehouseRisk[] {
+  const pressure = opts?.feedstockPressure ?? 1;
+  return materials
+    .map((m) => {
+      const crit = CRIT_SCORE[m.criticality] ?? 18;
+      const share = Number(m.typical_share_pct ?? 0);
+      const lead = Number(m.best_supplier?.lead_time_days ?? 10);
+      const change = Number(m.change_pct_7d ?? 0);
+      const trendBoost =
+        m.trend === "up" ? 18 : m.trend === "down" ? -4 : change > 3 ? 12 : change < -3 ? -3 : 0;
+      const leadBoost = lead >= 18 ? 14 : lead >= 12 ? 8 : lead >= 7 ? 3 : 0;
+      const shareBoost = share >= 50 ? 16 : share >= 15 ? 8 : share >= 7 ? 4 : 0;
+      const pressureBoost = pressure > 1.15 ? 12 : pressure > 1.08 ? 6 : 0;
+      const score = Math.max(5, Math.min(100, crit + shareBoost + leadBoost + trendBoost + pressureBoost));
+      const severity: MaterialWarehouseRisk["severity"] =
+        score >= 75 ? "critical" : score >= 55 ? "high" : score >= 35 ? "medium" : "low";
+      const severity_fa =
+        severity === "critical" ? "بحرانی" : severity === "high" ? "بالا" : severity === "medium" ? "متوسط" : "کم";
+      const bits: string[] = [];
+      if (m.criticality === "critical" || m.criticality === "high") bits.push("حیاتی برای خط");
+      if (share >= 15) bits.push(`سهم ${Math.round(share)}٪ سبد`);
+      if (lead >= 12) bits.push(`تحویل ${lead} روز`);
+      if (m.trend === "up" || change > 3) bits.push("قیمت صعودی — ریسک انباشت/زمان خرید");
+      if (pressure > 1.08) bits.push("فشار خوراک بازار");
+      if (!bits.length) bits.push("پوشش عادی انبار");
+      return {
+        material_id: m.id,
+        name_fa: m.name_fa,
+        category: m.category,
+        severity,
+        severity_fa,
+        score: Math.round(score),
+        reason_fa: bits.join(" · "),
+        share_pct: share,
+        lead_time_days: m.best_supplier?.lead_time_days ?? null,
+        trend: m.trend,
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.name_fa.localeCompare(b.name_fa, "fa"));
+}
+
+export function warehouseRiskTone(severity: string): "danger" | "warn" | "ok" | "neutral" {
+  if (severity === "critical" || severity === "بحرانی") return "danger";
+  if (severity === "high" || severity === "بالا") return "warn";
+  if (severity === "medium" || severity === "متوسط") return "warn";
+  if (severity === "low" || severity === "کم") return "ok";
+  return "neutral";
+}
+

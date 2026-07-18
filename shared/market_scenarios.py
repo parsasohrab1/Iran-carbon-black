@@ -374,6 +374,18 @@ def _scenario_balance_summary(grades: list[dict[str, Any]], macros: dict[str, An
         if macros["indices"]["feed_idx"] > 1.2 and total_feed > 1_500_000
         else ("متوسط" if macros["indices"]["feed_idx"] > 1.08 else "کم")
     )
+    # Proxy realization price (IRR/kg) and feedstock basket (IRR/kg)
+    avg_sell_irr = 185_000.0
+    feed_price = float(macros["current"].get("feedstock_basket_irr") or 42_000)
+    estimated_revenue_irr = sum(r["planned_produce_kg"] * avg_sell_irr for r in grades)
+    estimated_feed_cost_irr = total_feed * feed_price
+    estimated_gross_profit_irr = sum(
+        r["planned_produce_kg"] * avg_sell_irr * float(r["adjusted_margin"]) for r in grades
+    )
+    # Net after inbound freight (~4.5% feed) + outbound distribution (~3.5% revenue)
+    inbound_freight = estimated_feed_cost_irr * 0.045
+    outbound_dist = estimated_revenue_irr * 0.035
+    estimated_profit_irr = estimated_gross_profit_irr - inbound_freight - outbound_dist
     return {
         "total_produce_kg": round(total_produce, 0),
         "total_sales_queue_kg": round(total_queue, 0),
@@ -383,6 +395,10 @@ def _scenario_balance_summary(grades: list[dict[str, Any]], macros: dict[str, An
         "warehouse_risk": warehouse_risk,
         "sales_queue_risk": sales_queue_risk,
         "purchase_queue_risk": purchase_queue_risk,
+        "estimated_revenue_irr": round(estimated_revenue_irr, 0),
+        "estimated_feed_cost_irr": round(estimated_feed_cost_irr, 0),
+        "estimated_gross_profit_irr": round(estimated_gross_profit_irr, 0),
+        "estimated_profit_irr": round(estimated_profit_irr, 0),
         "balance_score": round(
             100
             - (10 if warehouse_risk == "بالا" else 5 if warehouse_risk == "متوسط" else 0)

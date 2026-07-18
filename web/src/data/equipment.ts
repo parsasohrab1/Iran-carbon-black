@@ -1,5 +1,7 @@
 /** Offline/static production-line equipment board for carbon black plant. */
 
+import { buildLocalRulComponentsBoard } from "./rul_components";
+
 export type DataLogger = {
   id: string;
   name_fa: string;
@@ -52,6 +54,18 @@ export type EquipmentUnit = {
   };
 };
 
+export type ProcessRecommendation = {
+  action_id: string;
+  action_fa: string;
+  mode: "auto_eligible" | "manual_only" | string;
+  auto_eligible?: boolean;
+  rank?: number;
+  confidence?: number;
+  expected_effect_fa?: string;
+  risk_fa?: string;
+  setpoint_hint?: Record<string, unknown>;
+};
+
 export type ProcessAlert = {
   id?: number | string;
   equipment_id: string;
@@ -66,6 +80,59 @@ export type ProcessAlert = {
   unit?: string;
   message: string;
   created_at?: string;
+  breach_direction?: string;
+  overshoot_pct?: number;
+  recommendations?: ProcessRecommendation[];
+  primary_recommendation?: ProcessRecommendation | null;
+};
+
+export type ProcessActionLog = {
+  id: string;
+  applied_at: string;
+  mode: string;
+  operator: string;
+  equipment_id?: string;
+  equipment_name?: string;
+  sensor_key?: string;
+  sensor_name?: string;
+  action_id?: string;
+  action_fa?: string;
+  status?: string;
+};
+
+export type ComponentRul = {
+  component_id: string;
+  component_type: string;
+  component_type_fa: string;
+  name_fa: string;
+  equipment_id: string;
+  equipment_name?: string;
+  line_id?: string;
+  rul_days: number;
+  failure_probability: number;
+  health_score?: number;
+  severity: string;
+  alert?: boolean;
+  failure_mode_fa?: string;
+  recommended_action_fa?: string;
+  message?: string;
+  alert_type?: string;
+};
+
+export type RulComponentsBoard = {
+  source?: string;
+  alert_threshold_days?: number;
+  components: ComponentRul[];
+  alerts: ComponentRul[];
+  summary: {
+    component_count: number;
+    alert_count: number;
+    critical_count: number;
+    warning_count: number;
+    by_type: Record<string, number>;
+    min_rul_days?: number | null;
+    types_fa?: string[];
+  };
 };
 
 export type EquipmentBoard = {
@@ -74,6 +141,15 @@ export type EquipmentBoard = {
   equipment: EquipmentUnit[];
   data_loggers?: DataLogger[];
   process_alerts: ProcessAlert[];
+  autopilot?: {
+    enabled?: boolean;
+    autopilot?: boolean;
+    applied?: ProcessActionLog[];
+    skipped?: number;
+    message_fa?: string;
+  };
+  recent_actions?: ProcessActionLog[];
+  rul_components?: RulComponentsBoard;
   summary: {
     equipment_count: number;
     sensor_count: number;
@@ -86,6 +162,7 @@ export type EquipmentBoard = {
     plc_count?: number;
     scada_count?: number;
     data_logger_count?: number;
+    auto_applied_count?: number;
   };
 };
 
@@ -474,6 +551,44 @@ function evalUnit(spec: Spec, spike = false): EquipmentUnit {
   };
 }
 
+export function buildLocalAdvice(alert: ProcessAlert): ProcessAlert {
+  const val = Number(alert.measured_value ?? alert.value ?? 0);
+  const high = val > Number(alert.max_op);
+  const primary: ProcessRecommendation = {
+    action_id: high ? "nudge_setpoint_down" : "nudge_setpoint_up",
+    action_fa: high
+      ? "کاهش تدریجی ست‌پوینت مرتبط تا بازگشت به رنج"
+      : "افزایش تدریجی ست‌پوینت مرتبط تا حداقل عملیاتی",
+    mode: alert.severity === "critical" ? "auto_eligible" : "manual_only",
+    auto_eligible: alert.severity === "critical",
+    rank: 1,
+    confidence: 0.88,
+    expected_effect_fa: "بازگشت مقدار به باند عملیاتی",
+    risk_fa: "اثر جانبی کوتاه‌مدت روی کیفیت",
+  };
+  const manual: ProcessRecommendation = {
+    action_id: "operator_verify",
+    action_fa: "تأیید میدانی توسط اپراتور و ثبت در لاگ شیفت",
+    mode: "manual_only",
+    auto_eligible: false,
+    rank: 2,
+    confidence: 0.8,
+    expected_effect_fa: "اعتبارسنجی هشدار",
+    risk_fa: "تأخیر واکنش",
+  };
+  return {
+    ...alert,
+    breach_direction: high ? "high" : "low",
+    overshoot_pct: Math.round(
+      (Math.abs(val - (high ? Number(alert.max_op) : Number(alert.min_op))) /
+        Math.max(Number(alert.max_op) - Number(alert.min_op), 1e-9)) *
+        1000,
+    ) / 10,
+    recommendations: [primary, manual],
+    primary_recommendation: primary,
+  };
+}
+
 export function buildLocalEquipmentBoard(): EquipmentBoard {
   const spikeIds = new Set(["BAG-001", "FAN-001", "DRY-001"]);
   const equipment = SPECS.map((s) => evalUnit(s, spikeIds.has(s.id)));
@@ -482,25 +597,31 @@ export function buildLocalEquipmentBoard(): EquipmentBoard {
     for (const s of u.sensors) {
       if (s.status === "ok" || s.status === "nodata" || s.value == null) continue;
       if (!(s.value < s.min_op || s.value > s.max_op)) continue;
-      process_alerts.push({
-        equipment_id: u.id,
-        equipment_name: u.name_fa,
-        sensor_key: s.key,
-        sensor_name: s.name_fa,
-        severity: String(s.status),
-        measured_value: s.value,
-        min_op: s.min_op,
-        max_op: s.max_op,
-        unit: s.unit,
-        message: `${u.name_fa}: ${s.name_fa} خارج از محدوده (${s.value} ${s.unit}; مجاز ${s.min_op}–${s.max_op})`,
-      });
+      process_alerts.push(
+        buildLocalAdvice({
+          equipment_id: u.id,
+          equipment_name: u.name_fa,
+          sensor_key: s.key,
+          sensor_name: s.name_fa,
+          severity: String(s.status),
+          measured_value: s.value,
+          min_op: s.min_op,
+          max_op: s.max_op,
+          unit: s.unit,
+          message: `${u.name_fa}: ${s.name_fa} خارج از محدوده (${s.value} ${s.unit}; مجاز ${s.min_op}–${s.max_op})`,
+        }),
+      );
     }
   }
+  const rul_components = buildLocalRulComponentsBoard();
   return {
     source: "کاتالوگ آفلاین خط تولید + PLC/SCADA/Data Logger",
     equipment,
     data_loggers: LOCAL_LOGGERS,
     process_alerts,
+    autopilot: { enabled: false, message_fa: "آفلاین — Auto Pilot در سرویس انرژی فعال می‌شود" },
+    recent_actions: [],
+    rul_components,
     summary: {
       equipment_count: equipment.length,
       sensor_count: equipment.reduce((n, e) => n + e.sensors.length, 0),

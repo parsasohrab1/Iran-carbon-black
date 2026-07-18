@@ -3,9 +3,11 @@ import { apiGet, apiPost, formatIrr, formatNum } from "./api";
 import { buildLocalCatalog, type CatalogResponse, type ProductGrade } from "./data/grades";
 import {
   buildLocalProcurementBoard,
+  rankMaterialWarehouseRisks,
   resolveSupplierCity,
   resolveSupplierName,
   sanitizeProcurementBoard,
+  warehouseRiskTone,
   type ProcurementBoard,
   type ProcurementMaterial,
 } from "./data/procurement";
@@ -22,8 +24,13 @@ import {
   type EquipmentBoard,
   type EquipmentSensor,
   type EquipmentUnit,
+  type ProcessActionLog,
+  type ProcessAlert,
+  type RulComponentsBoard,
 } from "./data/equipment";
+import { buildLocalRulComponentsBoard, severityLabelFa } from "./data/rul_components";
 import { buildLocalStockBoard, type StockBoard } from "./data/stock";
+import { buildLivePnlSnapshot } from "./data/live_pnl";
 import { buildLocalProductionBoard, type ProductionBoard } from "./data/production_plan";
 import {
   actionLabelFa,
@@ -210,6 +217,12 @@ export default function App() {
   const [sensorLampFilter, setSensorLampFilter] = useState<"all" | "ok" | "warning" | "critical" | "nodata">(
     "all",
   );
+  const [autopilotOn, setAutopilotOn] = useState(false);
+  const [adviceBusyKey, setAdviceBusyKey] = useState<string | null>(null);
+  const [processActions, setProcessActions] = useState<ProcessActionLog[]>([]);
+  const [rulBoard, setRulBoard] = useState<RulComponentsBoard>(() => buildLocalRulComponentsBoard());
+  const [rulScanBusy, setRulScanBusy] = useState(false);
+  const [rulShowAll, setRulShowAll] = useState(false);
   const [equipment, setEquipment] = useState<Array<Record<string, unknown>>>([]);
   const [anomalyEvents, setAnomalyEvents] = useState<Array<Record<string, unknown>>>([]);
   const [plans, setPlans] = useState<Array<Record<string, unknown>>>([]);
@@ -255,6 +268,7 @@ export default function App() {
         alerts,
         equip,
         equipBoard,
+        rulCompBoard,
         anomalies,
         prodPlans,
         prodBoard,
@@ -273,6 +287,9 @@ export default function App() {
         apiGet<Array<Record<string, unknown>>>("/api/v1/energy/alerts?open_only=true").catch(() => []),
         apiGet<Array<Record<string, unknown>>>("/api/v1/energy/equipment").catch(() => []),
         apiGet<EquipmentBoard>("/api/v1/energy/equipment/board").catch(() => buildLocalEquipmentBoard()),
+        apiGet<RulComponentsBoard>("/api/v1/energy/rul/components").catch(() =>
+          buildLocalRulComponentsBoard(),
+        ),
         apiGet<Array<Record<string, unknown>>>("/api/v1/quality/anomaly/events?limit=12").catch(() => []),
         apiGet<Array<Record<string, unknown>>>("/api/v1/demand/production/plans?limit=12").catch(() => []),
         apiGet<ProductionBoard>("/api/v1/demand/production/board").catch(() => buildLocalProductionBoard()),
@@ -300,6 +317,9 @@ export default function App() {
       setEnergyAlerts(alerts);
       setEquipment(equip);
       setEquipmentBoard(equipBoard);
+      setRulBoard(equipBoard.rul_components ?? rulCompBoard);
+      setAutopilotOn(Boolean(equipBoard.autopilot?.enabled));
+      setProcessActions(equipBoard.recent_actions ?? []);
       setAnomalyEvents(anomalies);
       setPlans(prodPlans);
       setProductionBoard(prodBoard);
@@ -361,6 +381,111 @@ export default function App() {
     }
   }, []);
 
+  const toggleAutopilot = useCallback(async () => {
+    const next = !autopilotOn;
+    try {
+      const res = await apiPost<{ enabled: boolean; recent_actions?: ProcessActionLog[]; message_fa?: string }>(
+        "/api/v1/energy/process/autopilot",
+        { enabled: next },
+      );
+      setAutopilotOn(Boolean(res.enabled));
+      if (res.recent_actions) setProcessActions(res.recent_actions);
+      // refresh board so auto-apply runs when turning ON
+      const board = await apiGet<EquipmentBoard>("/api/v1/energy/equipment/board").catch(() => null);
+      if (board) {
+        setEquipmentBoard(board);
+        setAutopilotOn(Boolean(board.autopilot?.enabled));
+        setProcessActions(board.recent_actions ?? res.recent_actions ?? []);
+        if (board.rul_components) setRulBoard(board.rul_components);
+      }
+    } catch {
+      setAutopilotOn(next);
+    }
+  }, [autopilotOn]);
+
+  const scanComponentRul = useCallback(async () => {
+    setRulScanBusy(true);
+    try {
+      const res = await apiPost<{
+        scanned?: number;
+        alerts?: number;
+        inserted?: number;
+        board?: RulComponentsBoard;
+      }>("/api/v1/energy/rul/components/scan", {});
+      if (res.board) {
+        setRulBoard(res.board);
+      } else {
+        const board = await apiGet<RulComponentsBoard>("/api/v1/energy/rul/components").catch(() => null);
+        if (board) setRulBoard(board);
+      }
+      const alerts = await apiGet<Array<Record<string, unknown>>>("/api/v1/energy/alerts?open_only=true").catch(
+        () => null,
+      );
+      if (alerts) setEnergyAlerts(alerts);
+      setUpdatedAt(new Date().toLocaleString("fa-IR"));
+    } catch {
+      setRulBoard(buildLocalRulComponentsBoard());
+    } finally {
+      setRulScanBusy(false);
+    }
+  }, []);
+
+  const applyProcessAdvice = useCallback(
+    async (alert: ProcessAlert, actionId?: string, mode: "manual" | "auto" = "manual") => {
+      const key = `${alert.equipment_id}-${alert.sensor_key}-${actionId ?? "primary"}`;
+      setAdviceBusyKey(key);
+      try {
+        const res = await apiPost<{ status: string; action?: ProcessActionLog }>(
+          "/api/v1/energy/process/advice/apply",
+          {
+            equipment_id: alert.equipment_id,
+            sensor_key: alert.sensor_key,
+            measured_value: alert.measured_value ?? alert.value,
+            min_op: alert.min_op,
+            max_op: alert.max_op,
+            unit: alert.unit,
+            severity: alert.severity,
+            message: alert.message,
+            equipment_name: alert.equipment_name,
+            sensor_name: alert.sensor_name,
+            action_id: actionId ?? alert.primary_recommendation?.action_id,
+            mode,
+            operator: "dashboard-operator",
+          },
+        );
+        if (res.action) {
+          setProcessActions((prev) => [res.action!, ...prev].slice(0, 30));
+        }
+      } catch {
+        // offline: log locally
+        const rec = alert.primary_recommendation;
+        if (rec) {
+          setProcessActions((prev) =>
+            [
+              {
+                id: `local-${Date.now()}`,
+                applied_at: new Date().toISOString(),
+                mode,
+                operator: mode === "auto" ? "autopilot" : "dashboard-operator",
+                equipment_id: alert.equipment_id,
+                equipment_name: alert.equipment_name,
+                sensor_key: alert.sensor_key,
+                sensor_name: alert.sensor_name,
+                action_id: rec.action_id,
+                action_fa: rec.action_fa,
+                status: "applied",
+              },
+              ...prev,
+            ].slice(0, 30),
+          );
+        }
+      } finally {
+        setAdviceBusyKey(null);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     void load();
     const id = window.setInterval(() => void load(), 60000);
@@ -408,6 +533,31 @@ export default function App() {
     }
     return c;
   }, [allSensors]);
+
+  const rulRows = useMemo(() => {
+    if (rulShowAll) return rulBoard.components;
+    return rulBoard.alerts.length > 0 ? rulBoard.alerts : rulBoard.components.filter((c) => c.alert);
+  }, [rulBoard, rulShowAll]);
+
+  const materialWarehouseRisks = useMemo(
+    () =>
+      rankMaterialWarehouseRisks(procurement.materials, {
+        feedstockPressure: marketScenarios.macros?.indices?.cost_pressure,
+      }),
+    [procurement.materials, marketScenarios.macros?.indices?.cost_pressure],
+  );
+
+  const livePnl = useMemo(
+    () =>
+      buildLivePnlSnapshot({
+        finance: finance?.finance,
+        salesMtd: finance?.sales_mtd,
+        procurement,
+        salesPipeline,
+        marketScenarios,
+      }),
+    [finance, procurement, salesPipeline, marketScenarios],
+  );
 
   const title = TABS.find((t) => t.id === tab)?.label ?? "";
 
@@ -597,52 +747,95 @@ export default function App() {
             </Panel>
 
             <div className="grid two">
-              <Panel title="جریان نقدی و ریسک نقدینگی">
-                <div className="list-row">
-                  <span>خالص پیش‌بینی‌شده</span>
-                  <strong>{formatIrr(Number(finance?.cashflow?.net_cashflow ?? 0))}</strong>
-                </div>
-                <div className="list-row">
-                  <span>ورود / خروج</span>
-                  <span>
-                    {formatIrr(Number(finance?.cashflow?.projected_inflow ?? 0))} /{" "}
-                    {formatIrr(Number(finance?.cashflow?.projected_outflow ?? 0))}
-                  </span>
-                </div>
-                <div className="list-row">
-                  <span>سطح ریسک</span>
-                  <span className={`badge ${finance?.cashflow?.liquidity_risk === "low" ? "ok" : "warn"}`}>
-                    {finance?.cashflow?.liquidity_risk ?? "—"}
-                  </span>
-                </div>
+              <Panel title="ریسک انبارداری خرید مواد اولیه">
+                <p className="kpi-hint" style={{ marginBottom: "0.65rem" }}>
+                  مرتب‌شده بر اساس شدت ریسک — حیاتی بودن، سهم سبد، زمان تحویل و روند قیمت
+                </p>
+                {materialWarehouseRisks.length === 0 ? (
+                  <div className="empty">ماده اولیه‌ای برای ارزیابی نیست.</div>
+                ) : (
+                  materialWarehouseRisks.map((r) => (
+                    <div
+                      key={r.material_id}
+                      className="list-row"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setSelectedMaterial(r.material_id);
+                        setTab("supply");
+                      }}
+                    >
+                      <span>
+                        <strong>{r.name_fa}</strong>
+                        <span className="kpi-hint" style={{ display: "block", marginTop: "0.15rem" }}>
+                          {r.reason_fa}
+                        </span>
+                      </span>
+                      <span className={`badge ${warehouseRiskTone(r.severity)}`}>{r.severity_fa}</span>
+                    </div>
+                  ))
+                )}
               </Panel>
 
-              <Panel title="بلوغ و بازگشت سرمایه">
+              <Panel title="سود و هزینه عملیاتی لحظه‌ای">
+                <p className="kpi-hint" style={{ marginBottom: "0.55rem" }}>
+                  {livePnl.as_of_label}
+                  {livePnl.source ? ` · ${livePnl.source}` : ""}
+                </p>
                 <div className="list-row">
-                  <span>بلوغ محصول</span>
-                  <strong>{formatNum(maturity?.latest_roi?.maturity_pct ?? 0)}٪</strong>
-                </div>
-                <div className="bar-track" style={{ margin: "0.4rem 0 0.9rem" }}>
-                  <div
-                    className="bar-fill"
-                    style={{ width: `${Math.min(100, Number(maturity?.latest_roi?.maturity_pct ?? 0))}%` }}
-                  />
+                  <span>سود خالص در لحظه</span>
+                  <strong>{formatIrr(livePnl.net_profit_irr)}</strong>
                 </div>
                 <div className="list-row">
-                  <span>منافع سالانه</span>
-                  <strong>{formatIrr(Number(maturity?.latest_roi?.annual_benefits_irr ?? 0))}</strong>
+                  <span>سود ناخالص در لحظه</span>
+                  <strong>{formatIrr(livePnl.gross_profit_irr)}</strong>
                 </div>
                 <div className="list-row">
-                  <span>دوره بازگشت</span>
-                  <span>
-                    {formatNum(maturity?.latest_roi?.payback_months ?? 0)} ماه
-                    {maturity?.latest_roi?.on_track ? (
-                      <span className="badge ok" style={{ marginRight: "0.4rem" }}>
-                        در مسیر
-                      </span>
-                    ) : null}
-                  </span>
+                  <span>خرید مواد اولیه</span>
+                  <span>{formatIrr(livePnl.material_purchase_irr)}</span>
                 </div>
+                <div className="list-row">
+                  <span>میزان فروش</span>
+                  <span>{formatIrr(livePnl.sales_irr)}</span>
+                </div>
+                <div className="list-row">
+                  <span>صف خرید (تومان / {formatNum(livePnl.horizon_days, 0)} روز)</span>
+                  <span>{formatIrr(livePnl.purchase_queue_irr)}</span>
+                </div>
+                <div className="list-row">
+                  <span>حمل مواد تا کارخانه</span>
+                  <span>{formatIrr(livePnl.inbound_freight_irr)}</span>
+                </div>
+                <div className="list-row">
+                  <span>توزیع فروش</span>
+                  <span>{formatIrr(livePnl.outbound_distribution_irr)}</span>
+                </div>
+                <p className="kpi-hint" style={{ margin: "0.75rem 0 0.4rem" }}>
+                  سود ناشی از ۵ سناریو در صورت اعمال
+                </p>
+                {livePnl.scenario_profits.map((s) => (
+                  <div key={s.id} className="list-row">
+                    <span>
+                      {s.name_fa}
+                      {s.recommended ? (
+                        <span className="badge ok" style={{ marginRight: "0.35rem" }}>
+                          پیشنهادی
+                        </span>
+                      ) : null}
+                    </span>
+                    <span>
+                      <strong>{formatIrr(s.estimated_profit_irr)}</strong>
+                      {s.delta_vs_baseline_irr !== 0 ? (
+                        <span
+                          className={`badge ${s.delta_vs_baseline_irr > 0 ? "ok" : "warn"}`}
+                          style={{ marginRight: "0.35rem" }}
+                        >
+                          {s.delta_vs_baseline_irr > 0 ? "+" : ""}
+                          {formatIrr(s.delta_vs_baseline_irr)}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
               </Panel>
             </div>
 
@@ -1073,6 +1266,18 @@ export default function App() {
                 hint={`${formatNum(equipmentBoard.summary.open_process_alerts, 0)} هشدار فرآیند`}
                 tone={lampCounts.critical ? "danger" : "ok"}
               />
+              <Kpi
+                label="هشدار RUL اجزا"
+                value={formatNum(rulBoard.summary.alert_count, 0)}
+                hint={`کمینه RUL: ${formatNum(Number(rulBoard.summary.min_rul_days ?? 0))} روز`}
+                tone={
+                  (rulBoard.summary.critical_count ?? 0) > 0
+                    ? "danger"
+                    : (rulBoard.summary.alert_count ?? 0) > 0
+                      ? "warn"
+                      : "ok"
+                }
+              />
             </div>
 
             <Panel title="تابلوی چراغی سنسورها — محدوده عملکردی">
@@ -1267,10 +1472,169 @@ export default function App() {
               </div>
             </Panel>
 
+            <Panel title="هشدار عملکرد خارج از محدوده — پیشنهاد هوشمند">
+              <div className="autopilot-bar">
+                <div>
+                  <strong>Auto Pilot</strong>
+                  <div className="kpi-hint">
+                    روشن: اجرای خودکار اقدامات واجد شرایط برای هشدارهای بحرانی · خاموش: فقط پیشنهاد + اجرای دستی
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={`btn autopilot-toggle ${autopilotOn ? "primary on" : ""}`}
+                  onClick={() => void toggleAutopilot()}
+                >
+                  {autopilotOn ? "ON — فعال" : "OFF — خاموش"}
+                </button>
+              </div>
+              {equipmentBoard.autopilot?.message_fa ? (
+                <p className="kpi-hint" style={{ marginBottom: "0.65rem" }}>
+                  {equipmentBoard.autopilot.message_fa}
+                </p>
+              ) : null}
+
+              {equipmentBoard.process_alerts.length === 0 ? (
+                <div className="empty">همه سنسورها در محدوده مجاز هستند.</div>
+              ) : (
+                <div className="advice-stack">
+                  {equipmentBoard.process_alerts.map((a, idx) => {
+                    const primary = a.primary_recommendation ?? a.recommendations?.[0];
+                    const busy = adviceBusyKey?.startsWith(`${a.equipment_id}-${a.sensor_key}`);
+                    return (
+                      <div
+                        key={`${a.equipment_id}-${a.sensor_key}-${idx}`}
+                        className={`advice-card ${a.severity === "critical" ? "crit" : "warn"}`}
+                      >
+                        <div className="advice-head">
+                          <div>
+                            <strong>
+                              {a.equipment_name ?? a.equipment_id} — {a.sensor_name ?? a.sensor_key}
+                            </strong>
+                            <div className="kpi-hint">
+                              {formatNum(Number(a.measured_value ?? a.value ?? 0), 2)} {a.unit ?? ""} · مجاز{" "}
+                              {formatNum(Number(a.min_op ?? 0), 2)}–{formatNum(Number(a.max_op ?? 0), 2)}
+                              {a.breach_direction
+                                ? ` · ${a.breach_direction === "high" ? "بالاتر از حد" : "پایین‌تر از حد"}`
+                                : ""}
+                              {a.overshoot_pct != null ? ` · انحراف ${formatNum(a.overshoot_pct)}٪` : ""}
+                            </div>
+                          </div>
+                          <span className={`badge ${a.severity === "critical" ? "danger" : "warn"}`}>
+                            {a.severity === "critical" ? "بحرانی" : "هشدار"}
+                          </span>
+                        </div>
+
+                        {primary ? (
+                          <div className="advice-primary">
+                            <div className="kpi-hint">پیشنهاد اصلی</div>
+                            <div className="advice-action">{primary.action_fa}</div>
+                            <div className="kpi-hint">
+                              {primary.expected_effect_fa}
+                              {primary.risk_fa ? ` · ریسک: ${primary.risk_fa}` : ""}
+                              {primary.confidence != null
+                                ? ` · اطمینان ${formatNum(primary.confidence * 100, 0)}٪`
+                                : ""}
+                            </div>
+                            <div className="advice-actions-row">
+                              <span
+                                className={`badge ${primary.auto_eligible || primary.mode === "auto_eligible" ? "ok" : "neutral"}`}
+                              >
+                                {primary.auto_eligible || primary.mode === "auto_eligible"
+                                  ? "قابل Auto Pilot"
+                                  : "فقط دستی"}
+                              </span>
+                              <button
+                                type="button"
+                                className="btn primary"
+                                disabled={Boolean(busy)}
+                                onClick={() => void applyProcessAdvice(a, primary.action_id, "manual")}
+                              >
+                                اجرای دستی
+                              </button>
+                              {(primary.auto_eligible || primary.mode === "auto_eligible") && !autopilotOn ? (
+                                <button
+                                  type="button"
+                                  className="btn"
+                                  disabled={Boolean(busy)}
+                                  onClick={() => void applyProcessAdvice(a, primary.action_id, "auto")}
+                                >
+                                  اجرای یک‌باره (شبیه‌سازی auto)
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {(a.recommendations ?? []).length > 1 ? (
+                          <details className="advice-more">
+                            <summary>سایر پیشنهادها ({(a.recommendations ?? []).length - 1})</summary>
+                            <ul>
+                              {(a.recommendations ?? []).slice(1).map((r) => (
+                                <li key={r.action_id}>
+                                  <div className="advice-action">{r.action_fa}</div>
+                                  <div className="kpi-hint">
+                                    {r.mode === "manual_only" ? "دستی" : "خودکار"} · {r.expected_effect_fa}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn"
+                                    style={{ marginTop: "0.35rem" }}
+                                    disabled={Boolean(busy)}
+                                    onClick={() => void applyProcessAdvice(a, r.action_id, "manual")}
+                                  >
+                                    اجرا
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {processActions.length > 0 ? (
+                <div style={{ marginTop: "1rem" }}>
+                  <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.95rem" }}>لاگ اقدامات (دستی / Auto Pilot)</h4>
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>زمان</th>
+                          <th>حالت</th>
+                          <th>تجهیز</th>
+                          <th>اقدام</th>
+                          <th>اپراتور</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {processActions.slice(0, 12).map((act) => (
+                          <tr key={act.id}>
+                            <td>{new Date(act.applied_at).toLocaleString("fa-IR")}</td>
+                            <td>
+                              <span className={`badge ${act.mode === "auto" ? "ok" : "neutral"}`}>
+                                {act.mode === "auto" ? "Auto" : "دستی"}
+                              </span>
+                            </td>
+                            <td>{act.equipment_name ?? act.equipment_id}</td>
+                            <td>{act.action_fa ?? act.action_id}</td>
+                            <td>{act.operator}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </Panel>
+
             <div className="grid two">
-              <Panel title="هشدار عملکرد خارج از محدوده عملیاتی">
+              <Panel title="خلاصه هشدارهای رنج">
                 {equipmentBoard.process_alerts.length === 0 ? (
-                  <div className="empty">همه سنسورها در محدوده مجاز هستند.</div>
+                  <div className="empty">هشدار بازی نیست.</div>
                 ) : (
                   <div className="table-scroll">
                     <table>
@@ -1279,22 +1643,16 @@ export default function App() {
                           <th>تجهیز</th>
                           <th>سنسور</th>
                           <th>مقدار</th>
-                          <th>رنج مجاز</th>
                           <th>شدت</th>
                         </tr>
                       </thead>
                       <tbody>
                         {equipmentBoard.process_alerts.map((a, idx) => (
-                          <tr key={`${a.equipment_id}-${a.sensor_key}-${idx}`}>
+                          <tr key={`sum-${a.equipment_id}-${a.sensor_key}-${idx}`}>
                             <td>{a.equipment_name ?? a.equipment_id}</td>
                             <td>{a.sensor_name ?? a.sensor_key}</td>
                             <td>
-                              <strong>
-                                {formatNum(Number(a.measured_value ?? a.value ?? 0), 2)} {a.unit ?? ""}
-                              </strong>
-                            </td>
-                            <td>
-                              {formatNum(Number(a.min_op ?? 0), 2)} – {formatNum(Number(a.max_op ?? 0), 2)}
+                              {formatNum(Number(a.measured_value ?? a.value ?? 0), 2)} {a.unit ?? ""}
                             </td>
                             <td>
                               <span className={`badge ${a.severity === "critical" ? "danger" : "warn"}`}>
@@ -1310,36 +1668,90 @@ export default function App() {
               </Panel>
 
               <Panel title="هشدارهای نگهداری پیش‌بینانه (RUL)">
-                {energyAlerts.length === 0 ? (
+                <p className="kpi-hint" style={{ marginBottom: "0.75rem" }}>
+                  عمر مفید باقی‌مانده برای تسمه، روغن، هوا، یاتاقان، فیلتر، سیل و موتور — آستانه هشدار ≤{" "}
+                  {formatNum(rulBoard.alert_threshold_days ?? 14, 0)} روز
+                </p>
+                <div className="lamp-filter-row" style={{ marginBottom: "0.75rem" }}>
+                  <button type="button" className="btn primary" disabled={rulScanBusy} onClick={() => void scanComponentRul()}>
+                    {rulScanBusy ? "در حال اسکن…" : "اسکن RUL و ثبت هشدار"}
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${!rulShowAll ? "primary" : ""}`}
+                    onClick={() => setRulShowAll(false)}
+                  >
+                    فقط هشدارها ({formatNum(rulBoard.summary.alert_count, 0)})
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${rulShowAll ? "primary" : ""}`}
+                    onClick={() => setRulShowAll(true)}
+                  >
+                    همه اجزا ({formatNum(rulBoard.summary.component_count, 0)})
+                  </button>
+                </div>
+                {rulBoard.summary.types_fa?.length ? (
+                  <p className="source-note" style={{ marginBottom: "0.75rem" }}>
+                    انواع: {rulBoard.summary.types_fa.join(" · ")}
+                  </p>
+                ) : null}
+                {rulRows.length === 0 ? (
                   <div className="empty">هشدار RUL بازی نیست.</div>
                 ) : (
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>تجهیز</th>
-                        <th>شدت</th>
-                        <th>RUL (روز)</th>
-                        <th>پیام</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {energyAlerts.map((a) => (
-                        <tr key={String(a.id)}>
-                          <td>{String(a.equipment_id)}</td>
-                          <td>
-                            <span className={`badge ${a.severity === "critical" ? "danger" : "warn"}`}>
-                              {String(a.severity)}
-                            </span>
-                          </td>
-                          <td>{formatNum(Number(a.rul_days))}</td>
-                          <td>{String(a.message)}</td>
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>نوع</th>
+                          <th>جزء</th>
+                          <th>تجهیز</th>
+                          <th>RUL (روز)</th>
+                          <th>احتمال خرابی</th>
+                          <th>حالت خرابی</th>
+                          <th>اقدام پیشنهادی</th>
+                          <th>شدت</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {rulRows.map((a) => (
+                          <tr key={a.component_id}>
+                            <td>{a.component_type_fa}</td>
+                            <td>{a.name_fa}</td>
+                            <td>
+                              {a.equipment_name ?? a.equipment_id}
+                              {a.line_id ? ` · ${a.line_id}` : ""}
+                            </td>
+                            <td>{formatNum(a.rul_days)}</td>
+                            <td>{formatNum(a.failure_probability * 100, 1)}٪</td>
+                            <td>{a.failure_mode_fa ?? "—"}</td>
+                            <td>{a.recommended_action_fa ?? "—"}</td>
+                            <td>
+                              <span className={`badge ${a.severity === "critical" ? "danger" : a.severity === "warning" ? "warn" : ""}`}>
+                                {severityLabelFa(a.severity)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
-                {equipment.length > 0 ? (
+                {energyAlerts.length > 0 ? (
                   <p className="source-note" style={{ marginTop: "0.75rem" }}>
+                    هشدارهای ثبت‌شده در DB / زنده: {energyAlerts.length}
+                    {energyAlerts.some((a) => String(a.alert_type ?? "").startsWith("rul_"))
+                      ? ` (شامل ${energyAlerts.filter((a) => String(a.alert_type ?? "").startsWith("rul_")).length} مورد RUL جزء)`
+                      : ""}
+                  </p>
+                ) : null}
+                {rulBoard.source ? (
+                  <p className="source-note" style={{ marginTop: "0.35rem" }}>
+                    منبع: {rulBoard.source}
+                  </p>
+                ) : null}
+                {equipment.length > 0 ? (
+                  <p className="source-note" style={{ marginTop: "0.35rem" }}>
                     دارایی‌های ثبت‌شده در DB: {equipment.length}
                   </p>
                 ) : null}
