@@ -1,3 +1,28 @@
+/* Self-hosted fonts — works fully offline (no Google Fonts / CDN) */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Syne";
+  src: url("/fonts/Syne-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Syne";
+  src: url("/fonts/Syne-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg0: #f3efe6;
   --bg1: #e8e2d4;
@@ -14,8 +39,8 @@
   --warn: #c2410c;
   --shadow: 0 18px 50px rgba(20, 18, 16, 0.08);
   --radius: 18px;
-  --font-fa: "Vazirmatn", sans-serif;
-  --font-display: "Syne", "Vazirmatn", sans-serif;
+  --font-fa: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
+  --font-display: "Syne", "Vazirmatn", "Segoe UI", sans-serif;
 }
 
 * {
@@ -351,6 +376,73 @@ th {
   border-bottom: 0;
 }
 
+.grade-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.9rem;
+}
+
+.grade-card {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  border-radius: var(--radius);
+  padding: 1rem 1.05rem;
+  text-align: right;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow: var(--shadow);
+}
+
+.grade-card:hover {
+  transform: translateY(-2px);
+}
+
+.grade-card.active {
+  border-color: rgba(180, 83, 9, 0.55);
+  outline: 2px solid rgba(15, 118, 110, 0.25);
+}
+
+.grade-code {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.grade-trade {
+  margin-top: 0.25rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.grade-desc {
+  margin: 0.55rem 0 0.7rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 0 -0.2rem;
+}
+
+.spec-table th .th-sub,
+.th-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.source-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -364,7 +456,8 @@ th {
 
 @media (max-width: 1100px) {
   .grid.kpi,
-  .grid.three {
+  .grid.three,
+  .grade-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -390,7 +483,8 @@ th {
 
   .grid.kpi,
   .grid.two,
-  .grid.three {
+  .grid.three,
+  .grade-cards {
     grid-template-columns: 1fr;
   }
 

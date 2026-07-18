@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.app_factory import create_app
 from shared.config import get_settings
 from shared.db import get_db
+from shared.product_catalog import GRADE_TARGETS, build_product_catalog
 from services.quality.models import load_anomaly_artifact, optimize_process, predict_anomaly
 
 settings = get_settings()
@@ -27,20 +28,6 @@ async def lifespan(app):  # noqa: ANN001, ARG001
 app = create_app(settings, title="ICB Quality Service", version="2.0.0", lifespan=lifespan)
 router = APIRouter(prefix="/api/v1/quality", tags=["quality"])
 
-GRADE_TARGETS: dict[str, dict[str, tuple[float, float]]] = {
-    "N110": {"iodine_absorption": (135, 150), "dbp_absorption": (110, 125), "surface_area": (125, 140)},
-    "N115": {"iodine_absorption": (120, 135), "dbp_absorption": (108, 122), "surface_area": (115, 130)},
-    "N220": {"iodine_absorption": (80, 85), "dbp_absorption": (110, 120), "surface_area": (75, 82)},
-    "N234": {"iodine_absorption": (115, 125), "dbp_absorption": (120, 135), "surface_area": (110, 125)},
-    "N330": {"iodine_absorption": (78, 84), "dbp_absorption": (100, 112), "surface_area": (72, 80)},
-    "N339": {"iodine_absorption": (85, 95), "dbp_absorption": (115, 130), "surface_area": (85, 95)},
-    "N347": {"iodine_absorption": (85, 95), "dbp_absorption": (115, 130), "surface_area": (82, 92)},
-    "N550": {"iodine_absorption": (40, 48), "dbp_absorption": (115, 130), "surface_area": (38, 46)},
-    "N660": {"iodine_absorption": (32, 40), "dbp_absorption": (85, 100), "surface_area": (30, 40)},
-    "N762": {"iodine_absorption": (25, 35), "dbp_absorption": (60, 75), "surface_area": (25, 35)},
-    "N774": {"iodine_absorption": (25, 35), "dbp_absorption": (65, 80), "surface_area": (25, 35)},
-    "N990": {"iodine_absorption": (5, 15), "dbp_absorption": (35, 50), "surface_area": (6, 14)},
-}
 
 
 class AnomalyCheckRequest(BaseModel):
@@ -92,7 +79,30 @@ async def batch_metrics(batch_id: str, db: AsyncSession = Depends(get_db)) -> li
 
 @router.get("/grades")
 async def list_grades() -> dict:
-    return {"grades": list(GRADE_TARGETS.keys()), "targets": GRADE_TARGETS}
+    return {
+        "grades": list(GRADE_TARGETS.keys()),
+        "targets": GRADE_TARGETS,
+        "current_production": build_product_catalog()["grade_codes"],
+    }
+
+
+@router.get("/products")
+async def current_products() -> dict:
+    """Active commercial grades with full ASTM quality specification sheet."""
+    return build_product_catalog()
+
+
+@router.get("/products/{grade_code}")
+async def product_detail(grade_code: str) -> dict:
+    catalog = build_product_catalog()
+    normalized = grade_code.strip().upper()
+    if normalized.startswith("N") and "-" not in normalized and normalized[1:].isdigit():
+        normalized = f"N-{normalized[1:]}"
+    astm_key = normalized.replace("-", "")
+    for product in catalog["products"]:
+        if product["code"].upper() == normalized or product["astm_code"].upper() == astm_key:
+            return product
+    raise HTTPException(status_code=404, detail=f"Grade not in current production catalog: {grade_code}")
 
 
 @router.post("/anomaly/check")

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { apiGet, apiPost, formatIrr, formatNum } from "./api";
+import { buildLocalCatalog, type CatalogResponse, type ProductGrade } from "./data/grades";
 
-type TabId = "overview" | "energy" | "quality" | "demand" | "commercial" | "maturity";
+type TabId = "overview" | "products" | "energy" | "quality" | "demand" | "commercial" | "maturity";
 
 type FinanceDash = {
   generated_at?: string;
@@ -45,6 +46,7 @@ type MaturityDash = {
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: "overview", label: "نمای مدیریتی" },
+  { id: "products", label: "محصولات و گرید" },
   { id: "energy", label: "انرژی و نگهداری" },
   { id: "quality", label: "کیفیت" },
   { id: "demand", label: "تقاضا و تولید" },
@@ -101,6 +103,8 @@ export default function App() {
   );
   const [inventoryActions, setInventoryActions] = useState<Array<Record<string, unknown>>>([]);
   const [customersAtRisk, setCustomersAtRisk] = useState<Array<Record<string, unknown>>>([]);
+  const [catalog, setCatalog] = useState<CatalogResponse>(() => buildLocalCatalog());
+  const [selectedGrade, setSelectedGrade] = useState<string>("N-220");
   const [updatedAt, setUpdatedAt] = useState<string>("");
 
   const load = useCallback(async () => {
@@ -118,6 +122,7 @@ export default function App() {
         port,
         invOpt,
         crm,
+        products,
       ] = await Promise.all([
         apiGet<FinanceDash>("/api/v1/finance/dashboard").catch(() => null),
         apiGet<OpsStatus>("/api/v1/ops/status").catch(() => null),
@@ -133,6 +138,7 @@ export default function App() {
           () => ({ actions: [] }),
         ),
         apiGet<Array<Record<string, unknown>>>("/api/v1/sales/crm/at-risk").catch(() => []),
+        apiGet<CatalogResponse>("/api/v1/quality/products").catch(() => buildLocalCatalog()),
       ]);
 
       setFinance(financeDash);
@@ -145,6 +151,7 @@ export default function App() {
       setPortfolio(port);
       setInventoryActions(invOpt.actions ?? []);
       setCustomersAtRisk(crm);
+      setCatalog(products);
       setUpdatedAt(new Date().toLocaleString("fa-IR"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطا در بارگذاری داشبورد");
@@ -163,6 +170,11 @@ export default function App() {
     if (!ops?.services) return [];
     return Object.entries(ops.services).map(([name, meta]) => ({ name, ...meta }));
   }, [ops]);
+
+  const selectedProduct: ProductGrade | undefined = useMemo(
+    () => catalog.products.find((p) => p.code === selectedGrade) ?? catalog.products[0],
+    [catalog, selectedGrade],
+  );
 
   const title = TABS.find((t) => t.id === tab)?.label ?? "";
 
@@ -214,7 +226,11 @@ export default function App() {
           <div className="error">
             {error}
             <div style={{ marginTop: "0.75rem" }}>
-              اگر استک خاموش است: <code>.\scripts\bootstrap.ps1</code>
+              Backend را محلی بالا بیاورید: <code>.\scripts\dev-backend.ps1</code>
+              <br />
+              یا کل داشبورد: <code>.\scripts\dev-dashboard.ps1</code>
+              <br />
+              راهنما: <code>docs/OFFLINE_DASHBOARD.fa.md</code>
             </div>
           </div>
         ) : null}
@@ -247,6 +263,30 @@ export default function App() {
                 tone={ops?.sla_met ? "ok" : "danger"}
               />
             </div>
+
+            <Panel title="تولیدات فعلی کربن ایران">
+              <div className="grade-cards">
+                {catalog.products.map((p) => (
+                  <button
+                    key={p.code}
+                    type="button"
+                    className={`grade-card ${selectedGrade === p.code ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedGrade(p.code);
+                      setTab("products");
+                    }}
+                  >
+                    <div className="grade-code">{p.code}</div>
+                    <div className="grade-trade">
+                      {p.trade_name}
+                      {p.variant ? ` · ${p.variant}` : ""}
+                    </div>
+                    <div className="kpi-hint">{p.classification}</div>
+                    <span className="badge ok">در تولید</span>
+                  </button>
+                ))}
+              </div>
+            </Panel>
 
             <div className="grid two">
               <Panel title="جریان نقدی و ریسک نقدینگی">
@@ -349,6 +389,144 @@ export default function App() {
                 ) : null}
               </Panel>
             </div>
+          </div>
+        ) : null}
+
+        {!error && tab === "products" ? (
+          <div className="stack">
+            <div className="grid kpi">
+              <Kpi label="گرید در تولید" value={formatNum(catalog.count, 0)} hint="برگه مشخصات کیفیت" tone="ok" />
+              <Kpi
+                label="خانواده‌ها"
+                value={formatNum(catalog.classifications?.length ?? new Set(catalog.products.map((p) => p.classification)).size, 0)}
+                hint={(catalog.classifications ?? [...new Set(catalog.products.map((p) => p.classification))]).join(" · ")}
+              />
+              <Kpi
+                label="گرید انتخاب‌شده"
+                value={selectedProduct?.code ?? "—"}
+                hint={selectedProduct?.classification ?? ""}
+                tone="ok"
+              />
+              <Kpi label="روش‌های ASTM" value={formatNum(catalog.comparison.length, 0)} hint="شاخص کنترل کیفیت" />
+            </div>
+
+            <div className="grade-cards">
+              {catalog.products.map((p) => (
+                <button
+                  key={p.code}
+                  type="button"
+                  className={`grade-card ${selectedProduct?.code === p.code ? "active" : ""}`}
+                  onClick={() => setSelectedGrade(p.code)}
+                >
+                  <div className="grade-code">{p.code}</div>
+                  <div className="grade-trade">
+                    {p.trade_name}
+                    {p.variant ? ` · ${p.variant}` : ""}
+                  </div>
+                  <div className="th-sub">{p.classification}</div>
+                  <p className="grade-desc">{p.description_fa}</p>
+                  <span className="badge ok">در تولید</span>
+                </button>
+              ))}
+            </div>
+
+            {selectedProduct ? (
+              <div className="grid two">
+                <Panel title={`شناسنامه محصول — ${selectedProduct.code}`}>
+                  <div className="list-row">
+                    <span>کد ASTM</span>
+                    <strong>{selectedProduct.astm_code}</strong>
+                  </div>
+                  <div className="list-row">
+                    <span>نام تجاری</span>
+                    <strong>{selectedProduct.trade_name}</strong>
+                  </div>
+                  <div className="list-row">
+                    <span>نسخه / واریانت</span>
+                    <strong>{selectedProduct.variant ?? "—"}</strong>
+                  </div>
+                  <div className="list-row">
+                    <span>طبقه‌بندی</span>
+                    <strong>{selectedProduct.classification}</strong>
+                  </div>
+                  <div className="list-row">
+                    <span>وضعیت</span>
+                    <span className="badge ok">تولید جاری</span>
+                  </div>
+                  <p className="grade-desc" style={{ marginTop: "0.85rem" }}>
+                    {selectedProduct.description_fa}
+                  </p>
+                </Panel>
+
+                <Panel title="مشخصات کیفیت کامل (Quality Specification)">
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>شاخص</th>
+                          <th>ASTM</th>
+                          <th>مشخصات</th>
+                          <th>واحد</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedProduct.quality_specs.map((s) => (
+                          <tr key={s.id}>
+                            <td>{s.label_fa}</td>
+                            <td>{s.astm}</td>
+                            <td>
+                              <strong>{s.spec}</strong>
+                            </td>
+                            <td>{s.unit}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Panel>
+              </div>
+            ) : null}
+
+            <Panel title="جدول مقایسه‌ای مشخصات کیفیت (Quality Specification)">
+              <div className="table-scroll">
+                <table className="spec-table">
+                  <thead>
+                    <tr>
+                      <th>شاخص / آزمون</th>
+                      <th>ASTM</th>
+                      <th>واحد</th>
+                      {catalog.products.map((p) => (
+                        <th key={p.code}>
+                          {p.code}
+                          <div className="th-sub">
+                            {p.trade_name}
+                            {p.variant ? ` ${p.variant}` : ""}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {catalog.comparison.map((row) => (
+                      <tr key={row.id}>
+                        <td>
+                          <div>{row.label_fa}</div>
+                          <div className="th-sub">{row.label_en}</div>
+                        </td>
+                        <td>{row.astm}</td>
+                        <td>{row.unit}</td>
+                        {catalog.products.map((p) => (
+                          <td key={`${row.id}-${p.code}`}>
+                            <strong>{row.by_grade[p.code]}</strong>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {catalog.source ? <p className="source-note">منبع: {catalog.source}</p> : null}
+            </Panel>
           </div>
         ) : null}
 
@@ -465,6 +643,43 @@ export default function App() {
                 </tbody>
               </table>
               {anomalyEvents.length === 0 ? <div className="empty">رویدادی ثبت نشده است.</div> : null}
+            </Panel>
+
+            <Panel title="گریدهای جاری و حدود کنترل کیفیت">
+              <div className="table-scroll">
+                <table className="spec-table">
+                  <thead>
+                    <tr>
+                      <th>گرید</th>
+                      <th>نام تجاری</th>
+                      <th>عدد ید</th>
+                      <th>DBP</th>
+                      <th>سطح ویژه N₂</th>
+                      <th>Tint</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {catalog.products.map((p) => {
+                      const byId = Object.fromEntries(p.quality_specs.map((s) => [s.id, s.spec]));
+                      return (
+                        <tr key={p.code}>
+                          <td>
+                            <strong>{p.code}</strong>
+                          </td>
+                          <td>
+                            {p.trade_name}
+                            {p.variant ? ` ${p.variant}` : ""}
+                          </td>
+                          <td>{byId.iodine_no}</td>
+                          <td>{byId.oil_absorption_dbp}</td>
+                          <td>{byId.n2_surface_area}</td>
+                          <td>{byId.tint_strength}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </Panel>
           </div>
         ) : null}

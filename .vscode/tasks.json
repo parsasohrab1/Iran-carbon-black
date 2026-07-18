@@ -1,0 +1,70 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ICB: Start backend (Docker)",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/dev-backend.ps1\"",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "ICB: Start dashboard (Vite)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/web",
+        "env": {
+          "BROWSER": "none"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "(Local:|ready in)"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "ICB: Install dashboard deps",
+      "type": "shell",
+      "command": "npm install",
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ICB: Live dashboard (backend + Vite)",
+      "dependsOn": ["ICB: Start backend (Docker)", "ICB: Start dashboard (Vite)"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "ICB: Stop backend",
+      "type": "shell",
+      "command": "docker compose stop",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

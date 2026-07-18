@@ -23,9 +23,10 @@ htmlcov/
 
 # IDE
 .idea/
-.vscode/
 *.swp
 .DS_Store
+# Keep shared VS Code tasks/launch for offline dashboard workflow
+# .vscode/
 
 # Frontend
 node_modules/

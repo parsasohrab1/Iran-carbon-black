@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ICB: Open dashboard (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173",
+      "webRoot": "${workspaceFolder}/web",
+      "preLaunchTask": "ICB: Live dashboard (backend + Vite)"
+    },
+    {
+      "name": "ICB: Open dashboard (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173",
+      "webRoot": "${workspaceFolder}/web",
+      "preLaunchTask": "ICB: Live dashboard (backend + Vite)"
+    },
+    {
+      "name": "ICB: Attach to running dashboard",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173",
+      "webRoot": "${workspaceFolder}/web"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "npm.packageManager": "npm",
+  "editor.formatOnSave": false,
+  "files.exclude": {
+    "**/web/node_modules": true,
+    "**/web/dist": true
+  },
+  "search.exclude": {
+    "**/web/node_modules": true,
+    "**/web/dist": true
+  }
+}

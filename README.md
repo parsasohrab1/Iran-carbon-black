@@ -66,6 +66,24 @@ docker compose up -d --build dashboard gateway
 
 کاربر پیش‌فرض: `admin` / `Admin@ChangeMe1` — قبل از محیط واقعی رمزها را در `.env` عوض کنید.
 
+### اجرای آفلاین داشبورد در VS Code
+
+راهنمای کامل: [docs/OFFLINE_DASHBOARD.fa.md](docs/OFFLINE_DASHBOARD.fa.md)
+
+خلاصه سریع:
+
+```powershell
+# یک‌بار (آنلاین): ایمیج‌ها و npm
+docker compose pull; docker compose build
+cd web; npm install; cd ..
+
+# هر بار (حتی آفلاین):
+.\scripts\dev-dashboard.ps1
+# → http://127.0.0.1:5173  (API از طریق پروکسی به :8080)
+```
+
+در VS Code: `Ctrl+Shift+B` → Task **ICB: Live dashboard** یا `F5` با پیکربندی Edge/Chrome.
+
 داده سنتتیک نمونه:
 
 ```powershell
