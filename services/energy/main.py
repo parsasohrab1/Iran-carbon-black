@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -15,6 +16,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.app_factory import create_app
 from shared.config import get_settings
 from shared.db import SessionLocal, get_db
+from shared.equipment_catalog import (
+    DATA_LOGGERS,
+    EQUIPMENT,
+    build_static_equipment_board,
+    equipment_by_id,
+    evaluate_equipment,
+    simulate_reading,
+)
 from services.energy.optimizer import Tariff, choose_energy_source
 from services.energy.rul_model import load_rul_artifact, predict_rul_from_sensors
 
@@ -105,7 +114,7 @@ async def _latest_sensor_features(db: AsyncSession, equipment_id: str, lookback_
     row = result.mappings().first()
     if not row or row["temperature"] is None:
         raise HTTPException(status_code=404, detail="No sensor data for equipment")
-    return {k: float(v) for k, v in dict(row).items()}
+    return {k: float(v) for k, v in dict(row).items() if v is not None}
 
 
 async def _predict_and_maybe_alert(
@@ -379,6 +388,210 @@ async def model_info() -> dict:
         "feature_names": artifact.get("feature_names"),
         "metrics": artifact.get("metrics"),
     }
+
+
+def _readings_from_row(row: dict, catalog_eq: dict) -> dict[str, float]:
+    """Merge columnar sensors + raw.sensors JSON into one reading map."""
+    values: dict[str, float] = {}
+    raw = row.get("raw") or {}
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except json.JSONDecodeError:
+            raw = {}
+    nested = raw.get("sensors") if isinstance(raw, dict) else None
+    if isinstance(nested, dict):
+        for k, v in nested.items():
+            try:
+                values[str(k)] = float(v)
+            except (TypeError, ValueError):
+                pass
+    for col in (
+        "vibration_x",
+        "vibration_y",
+        "vibration_z",
+        "temperature",
+        "pressure",
+        "current_draw",
+        "oil_pressure",
+        "coolant_temp",
+    ):
+        if row.get(col) is not None and col not in values:
+            values[col] = float(row[col])
+    # Fill missing keys with simulated in-range values so board is complete
+    if len(values) < len(catalog_eq.get("sensors", [])):
+        sim = simulate_reading(catalog_eq, spike=False)
+        for k, v in sim.items():
+            values.setdefault(k, v)
+    return values
+
+
+@router.get("/equipment/board")
+async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
+    """Full production-line equipment + sensors vs operational ranges + process alerts."""
+    fallback = build_static_equipment_board(with_spikes=True)
+    catalog = equipment_by_id()
+    try:
+        # Ensure catalog equipment rows exist
+        for eq in EQUIPMENT:
+            await db.execute(
+                text(
+                    """
+                    INSERT INTO energy.equipment (id, name, name_fa, equipment_type, location, line_id, area, status)
+                    VALUES (:id, :name, :name_fa, :etype, :loc, :line, :area, 'running')
+                    ON CONFLICT (id) DO UPDATE SET
+                        name_fa = COALESCE(EXCLUDED.name_fa, energy.equipment.name_fa),
+                        location = EXCLUDED.location,
+                        line_id = EXCLUDED.line_id,
+                        area = EXCLUDED.area
+                    """
+                ),
+                {
+                    "id": eq["id"],
+                    "name": eq.get("name_en") or eq["name_fa"],
+                    "name_fa": eq["name_fa"],
+                    "etype": eq["equipment_type"],
+                    "loc": eq["location"],
+                    "line": eq["line_id"],
+                    "area": eq["area"],
+                },
+            )
+
+        units = []
+        process_alerts = []
+        for eq in EQUIPMENT:
+            latest = await db.execute(
+                text(
+                    """
+                    SELECT time, vibration_x, vibration_y, vibration_z, temperature, pressure,
+                           current_draw, oil_pressure, coolant_temp, raw
+                    FROM energy.sensor_readings
+                    WHERE equipment_id = :eid
+                    ORDER BY time DESC
+                    LIMIT 1
+                    """
+                ),
+                {"eid": eq["id"]},
+            )
+            row = latest.mappings().first()
+            if row:
+                readings = _readings_from_row(dict(row), eq)
+                as_of = str(row["time"])
+            else:
+                readings = simulate_reading(eq, spike=eq["id"] in {"BAG-001", "FAN-001", "DRY-001"})
+                as_of = datetime.now(timezone.utc).isoformat()
+                await db.execute(
+                    text(
+                        """
+                        INSERT INTO energy.sensor_readings (
+                            time, equipment_id, vibration_x, vibration_y, vibration_z,
+                            temperature, pressure, current_draw, oil_pressure, coolant_temp, raw
+                        ) VALUES (
+                            NOW(), :eid, :vx, :vy, :vz, :temp, :press, :curr, :oil, :cool, CAST(:raw AS jsonb)
+                        )
+                        """
+                    ),
+                    {
+                        "eid": eq["id"],
+                        "vx": readings.get("vibration_x"),
+                        "vy": readings.get("vibration_y"),
+                        "vz": readings.get("vibration_z"),
+                        "temp": readings.get("temperature"),
+                        "press": readings.get("pressure"),
+                        "curr": readings.get("current_draw"),
+                        "oil": readings.get("oil_pressure"),
+                        "cool": readings.get("coolant_temp"),
+                        "raw": json.dumps(
+                            {"operational_status": "running", "sensors": readings},
+                            ensure_ascii=False,
+                        ),
+                    },
+                )
+
+            # Demo: keep a few units visibly out-of-range for operator training
+            if eq["id"] in {"BAG-001", "FAN-001", "DRY-001"} and eq["sensors"]:
+                s0 = eq["sensors"][0]
+                hi = float(s0["max_op"])
+                lo = float(s0["min_op"])
+                span = max(hi - lo, 1e-6)
+                readings[s0["key"]] = round(hi + span * 0.12, 2)
+
+            evaluated = evaluate_equipment(eq, readings)
+            evaluated["as_of"] = as_of
+            evaluated["name_fa"] = eq["name_fa"]
+            units.append(evaluated)
+
+            for breach in evaluated["breaches"]:
+                process_alerts.append(breach)
+                await db.execute(
+                    text(
+                        """
+                        INSERT INTO energy.process_alerts (
+                            equipment_id, sensor_key, severity, measured_value, min_op, max_op, unit, message
+                        )
+                        SELECT :eid, :key, :sev, :val, :min_op, :max_op, :unit, :msg
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM energy.process_alerts
+                            WHERE equipment_id = :eid AND sensor_key = :key
+                              AND acknowledged = FALSE
+                              AND created_at > NOW() - INTERVAL '1 hour'
+                        )
+                        """
+                    ),
+                    {
+                        "eid": breach["equipment_id"],
+                        "key": breach["sensor_key"],
+                        "sev": breach["severity"],
+                        "val": breach["value"],
+                        "min_op": breach["min_op"],
+                        "max_op": breach["max_op"],
+                        "unit": breach["unit"],
+                        "msg": breach["message"],
+                    },
+                )
+
+        await db.commit()
+
+        open_alerts = await db.execute(
+            text(
+                """
+                SELECT id, equipment_id, sensor_key, severity, measured_value, min_op, max_op, unit, message, created_at
+                FROM energy.process_alerts
+                WHERE acknowledged = FALSE
+                ORDER BY created_at DESC
+                LIMIT 50
+                """
+            )
+        )
+        stored_alerts = [dict(r) for r in open_alerts.mappings().all()]
+        # Prefer live evaluation list if DB empty
+        alerts_out = stored_alerts if stored_alerts else process_alerts
+
+        normal = sum(1 for u in units if u["op_status"] == "normal")
+        warn = sum(1 for u in units if u["op_status"] == "warning")
+        crit = sum(1 for u in units if u["op_status"] == "critical")
+        return {
+            "source": "energy.equipment + PLC/SCADA/Data Logger + range evaluator",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "equipment": units,
+            "data_loggers": DATA_LOGGERS,
+            "process_alerts": alerts_out,
+            "summary": {
+                "equipment_count": len(units),
+                "sensor_count": sum(len(e["sensors"]) for e in EQUIPMENT),
+                "normal_count": normal,
+                "warning_count": warn,
+                "critical_count": crit,
+                "open_process_alerts": len(alerts_out),
+                "lines": sorted({e["line_id"] for e in EQUIPMENT}),
+                "logger_count": len(DATA_LOGGERS),
+                "plc_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "plc"),
+                "scada_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "scada"),
+                "data_logger_count": sum(1 for d in DATA_LOGGERS if d["kind"] == "data_logger"),
+            },
+        }
+    except Exception:  # noqa: BLE001
+        return fallback
 
 
 app.include_router(router)

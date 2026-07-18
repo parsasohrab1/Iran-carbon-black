@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.app_factory import create_app
 from shared.config import get_settings
 from shared.db import get_db
+from shared.stock_market import TICKER, build_static_stock_board, generate_intraday_ticks
 from services.finance.models import load_finance_artifact, run_cashflow_forecast, run_ratio_analysis
 
 settings = get_settings()
@@ -311,6 +312,164 @@ async def list_cashflow(limit: int = 20, db: AsyncSession = Depends(get_db)) -> 
 async def model_info() -> dict:
     artifact = load_finance_artifact()
     return {"model_version": artifact.get("model_version"), "metrics": artifact.get("metrics")}
+
+
+@router.get("/stock/board")
+async def stock_board(db: AsyncSession = Depends(get_db)) -> dict:
+    """شکربن TSE board: live quote, intraday chart, daily history, trades."""
+    fallback = build_static_stock_board()
+    try:
+        # Append a live tick each poll so the chart moves in near-real-time
+        last_q = await db.execute(
+            text(
+                """
+                SELECT price FROM finance.stock_quotes
+                WHERE symbol = :sym ORDER BY time DESC LIMIT 1
+                """
+            ),
+            {"sym": TICKER["symbol_fa"]},
+        )
+        last_row = last_q.mappings().first()
+        last_price = float(last_row["price"]) if last_row else float(fallback["quote"]["last_price"])
+        import random
+
+        new_price = max(1000.0, last_price * (1 + random.gauss(0, 0.0035)))
+        vol = int(abs(random.gauss(150_000, 70_000)))
+        side = "buy" if new_price >= last_price else "sell"
+        value = new_price * vol
+        now = datetime.now(timezone.utc)
+        await db.execute(
+            text(
+                """
+                INSERT INTO finance.stock_quotes (time, symbol, price, volume, value_irr, side, source)
+                VALUES (:t, :sym, :price, :vol, :val, :side, 'live-tick')
+                """
+            ),
+            {
+                "t": now,
+                "sym": TICKER["symbol_fa"],
+                "price": round(new_price, 0),
+                "vol": vol,
+                "val": round(value, 0),
+                "side": side,
+            },
+        )
+        await db.execute(
+            text(
+                """
+                INSERT INTO finance.stock_trades (traded_at, symbol, side, price, volume, value_irr, broker, source)
+                VALUES (:t, :sym, :side, :price, :vol, :val, :broker, 'live-tick')
+                """
+            ),
+            {
+                "t": now,
+                "sym": TICKER["symbol_fa"],
+                "side": side,
+                "price": round(new_price, 0),
+                "vol": vol,
+                "val": round(value, 0),
+                "broker": "معاملات برخط",
+            },
+        )
+        await db.commit()
+
+        intraday = await db.execute(
+            text(
+                """
+                SELECT time, price, volume, value_irr, side
+                FROM finance.stock_quotes
+                WHERE symbol = :sym AND time > NOW() - INTERVAL '1 day'
+                ORDER BY time ASC
+                LIMIT 200
+                """
+            ),
+            {"sym": TICKER["symbol_fa"]},
+        )
+        ticks = [dict(r) for r in intraday.mappings().all()]
+        if len(ticks) < 5:
+            ticks = generate_intraday_ticks(base_price=new_price)
+
+        daily = await db.execute(
+            text(
+                """
+                SELECT trade_date AS date, open_price AS open, high_price AS high,
+                       low_price AS low, close_price AS close, volume, value_irr, change_pct
+                FROM finance.stock_daily
+                WHERE symbol = :sym
+                ORDER BY trade_date ASC
+                LIMIT 90
+                """
+            ),
+            {"sym": TICKER["symbol_fa"]},
+        )
+        history = [dict(r) for r in daily.mappings().all()]
+        if not history:
+            history = fallback["history_daily"]
+
+        trades = await db.execute(
+            text(
+                """
+                SELECT id, traded_at AS time, side, price, volume, value_irr, broker
+                FROM finance.stock_trades
+                WHERE symbol = :sym
+                ORDER BY traded_at DESC
+                LIMIT 30
+                """
+            ),
+            {"sym": TICKER["symbol_fa"]},
+        )
+        recent_trades = [dict(r) for r in trades.mappings().all()]
+
+        first_p = float(ticks[0]["price"])
+        last_p = float(ticks[-1]["price"])
+        day_change = last_p - first_p
+        day_pct = (day_change / first_p) * 100 if first_p else 0
+        week = history[-5:] if len(history) >= 5 else history
+        month = history[-20:] if len(history) >= 20 else history
+        week_pct = (
+            ((float(week[-1]["close"]) - float(week[0]["open"])) / float(week[0]["open"])) * 100 if week else 0
+        )
+        month_pct = (
+            ((float(month[-1]["close"]) - float(month[0]["open"])) / float(month[0]["open"])) * 100
+            if month
+            else 0
+        )
+
+        for t in ticks:
+            t["time"] = str(t["time"])
+            t["change_pct"] = round(((float(t["price"]) - first_p) / first_p) * 100, 2) if first_p else 0
+        for h in history:
+            h["date"] = str(h["date"])
+        for tr in recent_trades:
+            tr["time"] = str(tr["time"])
+
+        return {
+            "source": "finance.stock_* + live tick (شکربن / IRO1CRBN0001)",
+            "ticker": TICKER,
+            "quote": {
+                "last_price": round(last_p, 0),
+                "open_price": round(first_p, 0),
+                "high_price": round(max(float(t["price"]) for t in ticks), 0),
+                "low_price": round(min(float(t["price"]) for t in ticks), 0),
+                "previous_close": float(history[-2]["close"]) if len(history) >= 2 else round(first_p, 0),
+                "day_change": round(day_change, 0),
+                "day_change_pct": round(day_pct, 2),
+                "week_change_pct": round(week_pct, 2),
+                "month_change_pct": round(month_pct, 2),
+                "volume": int(sum(int(t["volume"] or 0) for t in ticks)),
+                "value_irr": round(sum(float(t.get("value_irr") or 0) for t in ticks), 0),
+                "trade_count": len(ticks),
+                "as_of": ticks[-1]["time"],
+                "trend": "up" if day_pct >= 0 else "down",
+                "status": "معاملات پیوسته — به‌روزرسانی لحظه‌ای داشبورد",
+            },
+            "intraday": ticks,
+            "history_daily": history,
+            "recent_trades": recent_trades,
+            "order_book": fallback["order_book"],
+        }
+    except Exception:  # noqa: BLE001
+        return fallback
 
 
 app.include_router(router)

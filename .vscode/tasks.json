@@ -57,8 +57,25 @@
         "isDefault": true
       }
     },
-    {
-      "label": "ICB: Stop backend",
+{
+  "label": "ICB: Offline run (no internet)",
+  "type": "shell",
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/offline-run.ps1\"",
+  "problemMatcher": [],
+  "presentation": {
+    "reveal": "always",
+    "panel": "dedicated",
+    "focus": true
+  }
+},
+{
+  "label": "ICB: Offline save (build static package)",
+  "type": "shell",
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/offline-save.ps1\"",
+  "problemMatcher": []
+},
+{
+  "label": "ICB: Stop backend",
       "type": "shell",
       "command": "docker compose stop",
       "options": {

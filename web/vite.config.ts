@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    // Fully local assets; no remote font/CDN fetches at runtime
+    base: "/",
     server: {
       host: "127.0.0.1",
       port: 5173,
@@ -28,6 +30,12 @@ export default defineConfig(({ mode }) => {
       port: 4173,
       strictPort: true,
       proxy,
+    },
+    build: {
+      outDir: "dist",
+      assetsDir: "assets",
+      sourcemap: false,
+      emptyOutDir: true,
     },
   };
 });

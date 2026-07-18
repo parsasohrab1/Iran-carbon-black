@@ -1,7 +1,39 @@
 # راهنمای اجرای آفلاین داشبورد در VS Code / Cursor
 # (بدون اینترنت، با اتصال زنده به Backend محلی)
 
-## ایده کلی
+## روش پیشنهادی آفلاین (ذخیره‌شده)
+
+داشبورد به‌صورت **بسته استاتیک** در `offline/dashboard` ذخیره می‌شود (فونت محلی، بدون CDN).
+
+### یک‌بار ذخیره (حتی روی سیستم با اینترنت)
+
+```powershell
+cd "c:\Users\asus\Documents\companies\ithub\AI\products\clones\iran carbon black\Iran-carbon-black"
+.\scripts\offline-save.ps1
+# اختیاری — آرشیو کامل ایمیج‌های Docker برای انتقال هوایی:
+.\scripts\offline-save.ps1 -SaveDocker
+```
+
+### هر بار اجرا بدون اینترنت
+
+```powershell
+.\scripts\offline-run.ps1
+```
+
+سپس باز کنید: **http://127.0.0.1:5173**
+
+| جزء | توضیح |
+|:---|:---|
+| `offline/dashboard` | SPA آماده (HTML/JS/CSS/فونت) |
+| `scripts/offline-static-server.mjs` | سرور محلی بدون وابستگی npm |
+| `docker compose --pull never` | Backend فقط از ایمیج‌های محلی |
+| پروکسی `/api` | به گیت‌وی `18080` |
+
+در VS Code: Task **`ICB: Offline run (no internet)`**
+
+---
+
+## ایده کلی (توسعه با Vite)
 
 | لایه | آدرس | نقش |
 |:---|:---|:---|

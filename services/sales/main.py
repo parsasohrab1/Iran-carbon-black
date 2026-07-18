@@ -14,6 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.app_factory import create_app
 from shared.config import get_settings
 from shared.db import get_db
+from shared.export_markets import (
+    build_export_forecast,
+    build_static_export_board,
+    merge_markets_with_catalog,
+)
+from shared.sales_pipeline import build_static_pipeline, sanitize_customer_row, sanitize_pipeline_board
 from services.sales.models import load_sales_artifact, run_sales_forecast
 
 settings = get_settings()
@@ -35,6 +41,19 @@ class SalesForecastRequest(BaseModel):
     tire_production_index: float = 112.0
     usd_irr_rate: float = 245000.0
     crude_oil_price_usd: float = 78.0
+    include_purchase_queue: bool = True
+
+
+class QueueItemCreate(BaseModel):
+    customer_id: str
+    grade: str
+    requested_tonnage_kg: float = Field(gt=0)
+    priority: int = Field(default=3, ge=1, le=5)
+    status: str = "queued"
+    expected_close_date: date | None = None
+    unit_price_irr: float | None = None
+    probability: float = Field(default=0.6, ge=0, le=1)
+    notes: str | None = None
 
 
 class PriceRequest(BaseModel):
@@ -56,20 +75,68 @@ class ProfileUpdate(BaseModel):
     notes: str | None = None
 
 
-@router.get("/customers")
-async def list_customers(db: AsyncSession = Depends(get_db)) -> list[dict]:
+OPEN_QUEUE_STATUSES = ("queued", "negotiating", "confirmed")
+
+
+async def _queue_demand_by_grade(db: AsyncSession, grade: str | None = None) -> dict[str, dict]:
+    params: dict = {}
+    grade_filter = ""
+    if grade:
+        grade_filter = "AND q.grade = :grade"
+        params["grade"] = grade
     result = await db.execute(
         text(
+            f"""
+            SELECT q.grade,
+                   SUM(q.requested_tonnage_kg) AS requested_kg,
+                   SUM(q.requested_tonnage_kg * COALESCE(q.probability, 0.6)) AS weighted_kg,
+                   SUM(q.requested_tonnage_kg * COALESCE(q.probability, 0.6)
+                       * COALESCE(q.unit_price_irr, 180000)) AS expected_revenue_irr,
+                   COUNT(*) AS items
+            FROM sales.purchase_queue q
+            WHERE q.status IN ('queued', 'negotiating', 'confirmed')
+            {grade_filter}
+            GROUP BY q.grade
             """
+        ),
+        params,
+    )
+    return {r["grade"]: dict(r) for r in result.mappings().all()}
+
+
+@router.get("/customers")
+async def list_customers(status: str | None = None, db: AsyncSession = Depends(get_db)) -> list[dict]:
+    params: dict = {}
+    status_filter = ""
+    if status:
+        status_filter = "AND COALESCE(c.status, 'active') = :status"
+        params["status"] = status
+    result = await db.execute(
+        text(
+            f"""
             SELECT c.id, c.name, c.segment, c.industry, c.annual_consumption_kg, c.region,
-                   p.preferred_grades, p.churn_risk, p.lifetime_value_irr, p.last_order_date
+                   COALESCE(c.status, 'active') AS status,
+                   COALESCE(c.monthly_tonnage_kg, c.annual_consumption_kg / 12.0) AS monthly_tonnage_kg,
+                   c.contact_person, c.notes,
+                   p.preferred_grades, p.churn_risk, p.lifetime_value_irr, p.last_order_date,
+                   p.needs->>'stage' AS pipeline_stage
             FROM sales.customers c
             LEFT JOIN sales.customer_profiles p ON p.customer_id = c.id
-            ORDER BY c.name
+            WHERE TRUE {status_filter}
+            ORDER BY COALESCE(c.monthly_tonnage_kg, 0) DESC, c.name
             """
-        )
+        ),
+        params,
     )
-    return [dict(r) for r in result.mappings().all()]
+    rows = [dict(r) for r in result.mappings().all()]
+    for row in rows:
+        grades = row.get("preferred_grades")
+        if isinstance(grades, str):
+            try:
+                row["preferred_grades"] = json.loads(grades)
+            except json.JSONDecodeError:
+                pass
+    return [sanitize_customer_row(r) for r in rows]
 
 
 @router.get("/customers/{customer_id}")
@@ -179,7 +246,7 @@ async def at_risk_customers(threshold: float = 0.2, db: AsyncSession = Depends(g
         ),
         {"th": threshold},
     )
-    return [dict(r) for r in result.mappings().all()]
+    return [sanitize_customer_row(dict(r)) for r in result.mappings().all()]
 
 
 @router.get("/orders")
@@ -234,6 +301,35 @@ async def forecast_sales(body: SalesForecastRequest, db: AsyncSession = Depends(
         usd_irr_rate=body.usd_irr_rate,
         crude_oil_price_usd=body.crude_oil_price_usd,
     )
+
+    queue_requested = 0.0
+    queue_weighted = 0.0
+    queue_revenue = 0.0
+    if body.include_purchase_queue:
+        try:
+            demand = await _queue_demand_by_grade(db, body.grade)
+            if body.grade and body.grade in demand:
+                slots = [demand[body.grade]]
+            else:
+                slots = list(demand.values())
+            queue_requested = sum(float(s["requested_kg"] or 0) for s in slots)
+            queue_weighted = sum(float(s["weighted_kg"] or 0) for s in slots)
+            queue_revenue = sum(float(s["expected_revenue_irr"] or 0) for s in slots)
+        except Exception:  # noqa: BLE001
+            queue_requested = queue_weighted = queue_revenue = 0.0
+
+    base_qty = float(prediction["forecast_quantity_kg"])
+    base_rev = float(prediction["forecast_revenue_irr"])
+    combined_qty = round(base_qty + queue_weighted, 2)
+    combined_rev = round(base_rev + queue_revenue, 2)
+    prediction["base_ml_quantity_kg"] = base_qty
+    prediction["base_ml_revenue_irr"] = base_rev
+    prediction["queue_requested_kg"] = round(queue_requested, 2)
+    prediction["queue_weighted_kg"] = round(queue_weighted, 2)
+    prediction["forecast_quantity_kg"] = combined_qty
+    prediction["forecast_revenue_irr"] = combined_rev
+    prediction["pipeline_share_pct"] = round((queue_weighted / combined_qty) * 100, 1) if combined_qty else 0.0
+
     await db.execute(
         text(
             """
@@ -261,6 +357,7 @@ async def forecast_sales(body: SalesForecastRequest, db: AsyncSession = Depends(
             {"month": str(r["month"]), "quantity_kg": float(r["qty"]), "revenue_irr": float(r["revenue"])}
             for r in reversed(rows)
         ],
+        "includes_purchase_queue": body.include_purchase_queue,
         **prediction,
     }
 
@@ -343,6 +440,270 @@ async def list_forecasts(limit: int = 20, db: AsyncSession = Depends(get_db)) ->
 async def model_info() -> dict:
     artifact = load_sales_artifact()
     return {"model_version": artifact.get("model_version"), "metrics": artifact.get("metrics"), "grades": artifact.get("grades")}
+
+
+@router.get("/pipeline/queue")
+async def list_purchase_queue(status: str | None = None, db: AsyncSession = Depends(get_db)) -> list[dict]:
+    params: dict = {}
+    status_filter = ""
+    if status:
+        status_filter = "AND q.status = :status"
+        params["status"] = status
+    result = await db.execute(
+        text(
+            f"""
+            SELECT q.id, q.customer_id, c.name AS customer_name, c.status AS customer_status,
+                   COALESCE(c.monthly_tonnage_kg, c.annual_consumption_kg / 12.0) AS customer_monthly_tonnage_kg,
+                   q.grade, q.requested_tonnage_kg, q.priority, q.status, q.expected_close_date,
+                   q.unit_price_irr, q.probability, q.source, q.notes, q.created_at,
+                   (q.requested_tonnage_kg * COALESCE(q.probability, 0.6)) AS weighted_tonnage_kg,
+                   (q.requested_tonnage_kg * COALESCE(q.probability, 0.6)
+                    * COALESCE(q.unit_price_irr, 180000)) AS expected_revenue_irr
+            FROM sales.purchase_queue q
+            JOIN sales.customers c ON c.id = q.customer_id
+            WHERE TRUE {status_filter}
+            ORDER BY q.priority ASC, q.expected_close_date NULLS LAST, q.created_at DESC
+            """
+        ),
+        params,
+    )
+    return [dict(r) for r in result.mappings().all()]
+
+
+@router.post("/pipeline/queue")
+async def create_queue_item(body: QueueItemCreate, db: AsyncSession = Depends(get_db)) -> dict:
+    exists = await db.execute(text("SELECT id FROM sales.customers WHERE id = :id"), {"id": body.customer_id})
+    if not exists.first():
+        raise HTTPException(status_code=404, detail="Customer not found")
+    result = await db.execute(
+        text(
+            """
+            INSERT INTO sales.purchase_queue (
+                customer_id, grade, requested_tonnage_kg, priority, status,
+                expected_close_date, unit_price_irr, probability, notes
+            ) VALUES (
+                :cid, :grade, :ton, :priority, :status,
+                :close, :price, :prob, :notes
+            )
+            RETURNING id
+            """
+        ),
+        {
+            "cid": body.customer_id,
+            "grade": body.grade,
+            "ton": body.requested_tonnage_kg,
+            "priority": body.priority,
+            "status": body.status,
+            "close": body.expected_close_date,
+            "price": body.unit_price_irr,
+            "prob": body.probability,
+            "notes": body.notes,
+        },
+    )
+    await db.commit()
+    row = result.first()
+    return {"status": "created", "id": row[0] if row else None}
+
+
+@router.get("/pipeline/dashboard")
+async def pipeline_dashboard(db: AsyncSession = Depends(get_db)) -> dict:
+    """Active/potential customers, purchase queue, and sales forecast with queue uplift."""
+    fallback = build_static_pipeline()
+    try:
+        active = await list_customers(status="active", db=db)
+        potential = await list_customers(status="potential", db=db)
+        queue = await list_purchase_queue(db=db)
+        demand = await _queue_demand_by_grade(db)
+
+        forecasts = []
+        for grade, agg in sorted(demand.items()):
+            history = await db.execute(
+                text(
+                    """
+                    SELECT COALESCE(SUM(quantity_kg), 0) AS qty, COALESCE(AVG(unit_price_irr), 180000) AS avg_price
+                    FROM sales.orders
+                    WHERE grade = :grade AND sale_date > CURRENT_DATE - INTERVAL '90 days'
+                    """
+                ),
+                {"grade": grade},
+            )
+            hist = history.mappings().first()
+            base = run_sales_forecast(
+                grade=grade,
+                months_ahead=1,
+                history_qty=[float(hist["qty"])] if hist and float(hist["qty"]) > 0 else [float(agg["weighted_kg"])],
+                recent_price=float(hist["avg_price"]) if hist else 180000.0,
+            )
+            base_qty = float(base["forecast_quantity_kg"])
+            queue_w = float(agg["weighted_kg"] or 0)
+            queue_r = float(agg["requested_kg"] or 0)
+            queue_rev = float(agg["expected_revenue_irr"] or 0)
+            combined = base_qty + queue_w
+            forecasts.append(
+                {
+                    "grade": grade,
+                    "base_ml_quantity_kg": round(base_qty, 1),
+                    "queue_requested_kg": round(queue_r, 1),
+                    "queue_weighted_kg": round(queue_w, 1),
+                    "forecast_quantity_kg": round(combined, 1),
+                    "forecast_revenue_irr": round(float(base["forecast_revenue_irr"]) + queue_rev, 0),
+                    "recommended_unit_price": base["recommended_unit_price_irr"],
+                    "pipeline_share_pct": round((queue_w / combined) * 100, 1) if combined else 0.0,
+                    "queue_items": int(agg["items"] or 0),
+                    "confidence": base.get("confidence"),
+                    "source": "ml+purchase_queue",
+                }
+            )
+
+            await db.execute(
+                text(
+                    """
+                    INSERT INTO sales.forecasts (
+                        grade, months_ahead, forecast_quantity_kg, forecast_revenue_irr,
+                        recommended_unit_price, confidence, model_version
+                    ) VALUES (:grade, 1, :qty, :rev, :price, :conf, :mv)
+                    """
+                ),
+                {
+                    "grade": grade,
+                    "qty": round(combined, 1),
+                    "rev": round(float(base["forecast_revenue_irr"]) + queue_rev, 0),
+                    "price": base["recommended_unit_price_irr"],
+                    "conf": base.get("confidence"),
+                    "mv": f"{base.get('model_version', 'sales')}+queue",
+                },
+            )
+        await db.commit()
+
+        return sanitize_pipeline_board(
+            {
+                "source": "sales.customers + purchase_queue + ML forecast",
+                "active_customers": active,
+                "potential_customers": potential,
+                "purchase_queue": queue,
+                "summary": {
+                    "active_count": len(active),
+                    "potential_count": len(potential),
+                    "queue_items": len(queue),
+                    "active_monthly_tonnage_kg": round(
+                        sum(float(c.get("monthly_tonnage_kg") or 0) for c in active), 1
+                    ),
+                    "potential_monthly_tonnage_kg": round(
+                        sum(float(c.get("monthly_tonnage_kg") or 0) for c in potential), 1
+                    ),
+                    "queue_requested_tonnage_kg": round(
+                        sum(float(q.get("requested_tonnage_kg") or 0) for q in queue), 1
+                    ),
+                    "queue_weighted_tonnage_kg": round(
+                        sum(float(q.get("weighted_tonnage_kg") or 0) for q in queue), 1
+                    ),
+                },
+                "sales_forecast_with_queue": forecasts,
+            }
+        )
+    except Exception:  # noqa: BLE001
+        return fallback
+
+
+@router.get("/export/board")
+async def export_board(db: AsyncSession = Depends(get_db)) -> dict:
+    """Actual/potential export markets + 6-month forecast (Codal/IRICA/TPO references)."""
+    fallback = build_static_export_board()
+    try:
+        markets_q = await db.execute(
+            text(
+                """
+                SELECT id, country_fa, country_en, status, region, annual_tonnage_kg, ytd_tonnage_kg,
+                       share_pct, main_grades, avg_fob_usd, growth_yoy_pct, buyers, logistics, risk,
+                       pipeline_stage, probability, source_refs
+                FROM sales.export_markets
+                ORDER BY CASE WHEN status = 'actual' THEN 0 ELSE 1 END, annual_tonnage_kg DESC
+                """
+            )
+        )
+        rows = [dict(r) for r in markets_q.mappings().all()]
+        if not rows:
+            return fallback
+
+        for r in rows:
+            if r.get("main_grades") is not None:
+                r["main_grades"] = list(r["main_grades"])
+            if r.get("source_refs") is not None:
+                r["source_refs"] = list(r["source_refs"])
+
+        rows = merge_markets_with_catalog(rows)
+        actual = [r for r in rows if r.get("status") == "actual"]
+        potential = [r for r in rows if r.get("status") == "potential"]
+        # Forecast from catalog tonnage/probability (stable) while preserving DB numeric overrides already merged
+        forecast = build_export_forecast(actual, potential)
+
+        for f in forecast:
+            month_date = date.fromisoformat(f"{f['month']}-01")
+            await db.execute(
+                text(
+                    """
+                    INSERT INTO sales.export_forecasts (
+                        forecast_month, baseline_tonnage_kg, pipeline_uplift_kg, forecast_tonnage_kg,
+                        forecast_revenue_usd, forecast_revenue_irr, avg_fob_usd, confidence,
+                        model_version, source
+                    ) VALUES (
+                        :m, :base, :uplift, :qty, :usd, :irr, :fob, :conf, :mv, 'live-board'
+                    )
+                    ON CONFLICT (forecast_month, model_version) DO UPDATE SET
+                        baseline_tonnage_kg = EXCLUDED.baseline_tonnage_kg,
+                        pipeline_uplift_kg = EXCLUDED.pipeline_uplift_kg,
+                        forecast_tonnage_kg = EXCLUDED.forecast_tonnage_kg,
+                        forecast_revenue_usd = EXCLUDED.forecast_revenue_usd,
+                        forecast_revenue_irr = EXCLUDED.forecast_revenue_irr,
+                        confidence = EXCLUDED.confidence,
+                        created_at = NOW()
+                    """
+                ),
+                {
+                    "m": month_date,
+                    "base": f["baseline_tonnage_kg"],
+                    "uplift": f["pipeline_uplift_kg"],
+                    "qty": f["forecast_tonnage_kg"],
+                    "usd": f["forecast_revenue_usd"],
+                    "irr": f["forecast_revenue_irr"],
+                    "fob": f["avg_fob_usd"],
+                    "conf": f["confidence"],
+                    "mv": f["model_version"],
+                },
+            )
+        await db.commit()
+
+        ytd = sum(float(m.get("ytd_tonnage_kg") or 0) for m in actual)
+        annual = sum(float(m.get("annual_tonnage_kg") or 0) for m in actual)
+        potential_annual = sum(
+            float(m.get("annual_tonnage_kg") or 0) * float(m.get("probability") or 0.4) for m in potential
+        )
+        return {
+            "source": "sales.export_markets + Codal/IRICA/TPO reference board",
+            "hs_code": fallback["hs_code"],
+            "product": fallback["product"],
+            "company": fallback["company"],
+            "iranian_sources": fallback["iranian_sources"],
+            "actual_markets": actual,
+            "potential_markets": potential,
+            "export_forecast": forecast,
+            "summary": {
+                "actual_markets_count": len(actual),
+                "potential_markets_count": len(potential),
+                "ytd_export_tonnage_kg": ytd,
+                "annual_actual_tonnage_kg": annual,
+                "potential_weighted_tonnage_kg": round(potential_annual, 0),
+                "next_month_forecast_kg": forecast[0]["forecast_tonnage_kg"] if forecast else 0,
+                "six_month_forecast_kg": round(sum(f["forecast_tonnage_kg"] for f in forecast), 0),
+                "six_month_revenue_usd": round(sum(f["forecast_revenue_usd"] for f in forecast), 0),
+                "top_market": actual[0]["country_fa"] if actual else "—",
+                "avg_growth_yoy_pct": round(
+                    sum(float(m.get("growth_yoy_pct") or 0) for m in actual) / max(len(actual), 1), 1
+                ),
+            },
+        }
+    except Exception:  # noqa: BLE001
+        return fallback
 
 
 app.include_router(router)

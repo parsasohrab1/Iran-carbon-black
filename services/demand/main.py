@@ -14,10 +14,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.app_factory import create_app
 from shared.config import get_settings
 from shared.db import get_db
+from shared.production_planning import build_production_board
+from shared.market_scenarios import build_market_scenario_board, scenario_presets
+from shared.procurement_sources import build_static_price_board
 from services.demand.models import load_demand_artifact, run_forecast, run_recommend
 from ml.demand.train_forecast import GRADES
 
 settings = get_settings()
+
+
+class ProductionBoardRequest(BaseModel):
+    horizon_days: int = Field(default=30, ge=7, le=90)
+    schedule_days: int = Field(default=14, ge=7, le=45)
+    persist: bool = True
+    forecast_period: str = Field(default="1_month", pattern="^(1_month|3_months|6_months)$")
+
+
+class MarketScenarioRequest(BaseModel):
+    scenario_id: str = "baseline"
+    usd_irr: float | None = None
+    gold_irr_g: float | None = None
+    oil_usd: float | None = None
+    feedstock_basket_irr: float | None = None
+    usd_irr_delta_pct: float = 0
+    gold_delta_pct: float = 0
+    oil_delta_pct: float = 0
+    feedstock_delta_pct: float = 0
+    horizon_days: int = Field(default=30, ge=14, le=90)
+    include_all_presets: bool = True
 
 
 @asynccontextmanager
@@ -170,33 +194,33 @@ async def recommend_grade(body: GradeRecommendRequest, db: AsyncSession = Depend
     return result
 
 
-@router.post("/production/plan")
-async def production_plan(body: ProductionPlanRequest, db: AsyncSession = Depends(get_db)) -> dict:
-    """DM-03 integrate demand forecast into production planning."""
-    grades = body.grades or GRADES
-    plans = []
-    for grade in grades:
-        hist = await db.execute(
-            text(
-                """
-                SELECT quantity_kg FROM demand.historical_demand
-                WHERE product_grade = :grade ORDER BY month DESC LIMIT 6
-                """
-            ),
-            {"grade": grade},
+async def _historical_monthly(db: AsyncSession) -> dict[str, float]:
+    """Average of last 3 months demand per grade (kg/month)."""
+    result = await db.execute(
+        text(
+            """
+            SELECT product_grade, AVG(quantity_kg) AS avg_kg
+            FROM (
+                SELECT product_grade, quantity_kg,
+                       ROW_NUMBER() OVER (PARTITION BY product_grade ORDER BY month DESC) AS rn
+                FROM demand.historical_demand
+            ) t
+            WHERE rn <= 3
+            GROUP BY product_grade
+            """
         )
-        history = [float(r[0]) for r in reversed(hist.all())]
-        if not history:
-            continue
-        prediction = run_forecast(
-            grade,
-            history,
-            body.forecast_period,
-            tire_industry_growth=body.tire_industry_growth,
-            exchange_rate_volatility=body.exchange_rate_volatility,
-        )
-        rec = prediction["recommended_production"]
-        start = date.today() + timedelta(days=7)
+    )
+    return {str(r["product_grade"]): float(r["avg_kg"]) for r in result.mappings().all()}
+
+
+async def _persist_board_plans(
+    db: AsyncSession,
+    board: dict,
+    *,
+    forecast_period: str,
+) -> None:
+    start = date.today() + timedelta(days=1)
+    for row in board.get("demand_by_grade") or []:
         await db.execute(
             text(
                 """
@@ -212,42 +236,165 @@ async def production_plan(body: ProductionPlanRequest, db: AsyncSession = Depend
                     production_line = EXCLUDED.production_line,
                     start_date = EXCLUDED.start_date,
                     margin_score = EXCLUDED.margin_score,
-                    model_version = EXCLUDED.model_version
+                    model_version = EXCLUDED.model_version,
+                    status = 'draft'
                 """
             ),
             {
-                "grade": grade,
-                "period": body.forecast_period,
-                "qty": rec["quantity_kg"],
-                "safety": rec["safety_stock_kg"],
-                "line": rec["production_line"],
+                "grade": row["product_grade"],
+                "period": forecast_period,
+                "qty": row["planned_quantity_kg"],
+                "safety": row["safety_stock_kg"],
+                "line": row["production_line"],
                 "start": start,
-                "margin": rec["margin_score"],
-                "mv": prediction["model_version"],
+                "margin": row["margin_score"],
+                "mv": "demand-capacity-v1",
             },
         )
-        plans.append(
-            {
-                "product_grade": grade,
-                "planned_quantity_kg": rec["quantity_kg"],
-                "safety_stock_kg": rec["safety_stock_kg"],
-                "production_line": rec["production_line"],
-                "start_date": str(start),
-                "margin_score": rec["margin_score"],
-                "forecast_quantity_kg": prediction["forecast_quantity_kg"],
-            }
-        )
     await db.commit()
+
+
+@router.get("/production/board")
+async def production_board(
+    horizon_days: int = 30,
+    schedule_days: int = 14,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Demand-driven production board: baseline + sales queue + export → schedule."""
+    historical = await _historical_monthly(db)
+    board = build_production_board(
+        historical_monthly=historical or None,
+        horizon_days=horizon_days,
+        schedule_days=schedule_days,
+    )
+    return board
+
+
+@router.post("/production/plan")
+async def production_plan(body: ProductionPlanRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    """DM-03: build capacity-constrained production plan from demand signals."""
+    period_days = {"1_month": 30, "3_months": 90, "6_months": 180}.get(body.forecast_period, 30)
+    horizon = min(90, max(14, period_days if period_days <= 90 else 30))
+    schedule_days = 14 if horizon <= 30 else 21
+
+    historical = await _historical_monthly(db)
+    board = build_production_board(
+        historical_monthly=historical or None,
+        horizon_days=horizon,
+        schedule_days=schedule_days,
+    )
+    if body.grades:
+        allowed = set(body.grades)
+        board["demand_by_grade"] = [r for r in board["demand_by_grade"] if r["product_grade"] in allowed]
+        board["schedule"] = [s for s in board["schedule"] if s["product_grade"] in allowed]
+
+    await _persist_board_plans(db, board, forecast_period=body.forecast_period)
+
+    plans = [
+        {
+            "product_grade": r["product_grade"],
+            "planned_quantity_kg": r["planned_quantity_kg"],
+            "safety_stock_kg": r["safety_stock_kg"],
+            "production_line": r["production_line"],
+            "start_date": str(date.today() + timedelta(days=1)),
+            "margin_score": r["margin_score"],
+            "forecast_quantity_kg": r["demand_total_kg"],
+            "demand_baseline_kg": r["demand_baseline_kg"],
+            "demand_sales_queue_kg": r["demand_sales_queue_kg"],
+            "demand_export_kg": r["demand_export_kg"],
+        }
+        for r in board["demand_by_grade"]
+    ]
     if body.prioritize_margin:
         plans.sort(key=lambda p: p["margin_score"], reverse=True)
     high_margin = [p for p in plans if p["margin_score"] >= 0.09]
     return {
-        "plan_date": str(date.today()),
+        "plan_date": board["plan_date"],
         "forecast_period": body.forecast_period,
+        "horizon_days": horizon,
         "plans": plans,
+        "schedule": board["schedule"],
+        "summary": board["summary"],
+        "source": board["source"],
         "high_margin_focus": high_margin[:5],
-        "model_version": "demand-gbr-v1",
+        "model_version": "demand-capacity-v1",
+        "board": board,
     }
+
+
+@router.post("/production/generate")
+async def generate_production_plan(body: ProductionBoardRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    """Explicit regenerate: merge demand signals and write a fresh production schedule."""
+    historical = await _historical_monthly(db)
+    board = build_production_board(
+        historical_monthly=historical or None,
+        horizon_days=body.horizon_days,
+        schedule_days=body.schedule_days,
+    )
+    if body.persist:
+        await _persist_board_plans(db, board, forecast_period=body.forecast_period)
+    return board
+
+
+async def _inventory_by_grade(db: AsyncSession) -> dict[str, float]:
+    try:
+        result = await db.execute(
+            text("SELECT product_grade, on_hand_kg FROM maturity.inventory_positions")
+        )
+        rows = {str(r["product_grade"]): float(r["on_hand_kg"]) for r in result.mappings().all()}
+        return rows
+    except Exception:
+        return {}
+
+
+@router.get("/scenarios/presets")
+async def list_scenario_presets() -> dict:
+    return {"presets": scenario_presets()}
+
+
+@router.get("/scenarios/board")
+async def market_scenario_board_get(
+    scenario_id: str = "baseline",
+    horizon_days: int = 30,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Market-driven grade production scenarios (USD · gold · oil · feedstock)."""
+    historical = await _historical_monthly(db)
+    inventory = await _inventory_by_grade(db)
+    return build_market_scenario_board(
+        scenario_id=scenario_id,
+        historical_monthly=historical or None,
+        inventory_by_grade=inventory or None,
+        horizon_days=horizon_days,
+        price_board=build_static_price_board(),
+        include_all_presets=True,
+    )
+
+
+@router.post("/scenarios/board")
+async def market_scenario_board_post(
+    body: MarketScenarioRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """What-if: override macros / deltas and recompute grade production scenario."""
+    historical = await _historical_monthly(db)
+    inventory = await _inventory_by_grade(db)
+    return build_market_scenario_board(
+        scenario_id=body.scenario_id,
+        usd_irr=body.usd_irr,
+        gold_irr_g=body.gold_irr_g,
+        oil_usd=body.oil_usd,
+        feedstock_basket_irr=body.feedstock_basket_irr,
+        usd_irr_delta_pct=body.usd_irr_delta_pct,
+        gold_delta_pct=body.gold_delta_pct,
+        oil_delta_pct=body.oil_delta_pct,
+        feedstock_delta_pct=body.feedstock_delta_pct,
+        historical_monthly=historical or None,
+        inventory_by_grade=inventory or None,
+        horizon_days=body.horizon_days,
+        price_board=build_static_price_board(),
+        include_all_presets=body.include_all_presets,
+    )
 
 
 @router.get("/production/plans")

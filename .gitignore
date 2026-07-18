@@ -32,6 +32,10 @@ htmlcov/
 node_modules/
 web/dist/
 
+# Offline package (keep dashboard static; ignore huge docker tar)
+offline/docker-images.tar
+offline-bundle/
+
 # Data & runtime
 data/minio/
 data/postgres/

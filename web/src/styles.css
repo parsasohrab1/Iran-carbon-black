@@ -437,6 +437,49 @@ th {
   margin-top: 0.15rem;
 }
 
+tr.row-active td {
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.stock-chart {
+  width: 100%;
+  overflow: hidden;
+}
+
+.stock-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-label {
+  fill: var(--muted);
+  font-size: 10px;
+  font-family: var(--font-fa);
+}
+
+.chart-legend {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pulse-dot {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    r: 5;
+  }
+  50% {
+    opacity: 0.45;
+    r: 7;
+  }
+}
+
 .source-note {
   margin: 0.85rem 0 0;
   font-size: 0.78rem;
@@ -491,5 +534,193 @@ th {
   .topbar {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* —— Sensor traffic-light gauges —— */
+.traffic-light {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  padding: 0.35rem 0.3rem;
+  border-radius: 0.65rem;
+  background: linear-gradient(180deg, #1a1a1a 0%, #2c2c2c 100%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.traffic-lamp {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 50%;
+  opacity: 0.28;
+  filter: grayscale(0.4);
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.traffic-lamp.red {
+  background: #ef4444;
+}
+
+.traffic-lamp.yellow {
+  background: #eab308;
+}
+
+.traffic-lamp.green {
+  background: #22c55e;
+}
+
+.traffic-lamp.on {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.08);
+  box-shadow: 0 0 8px currentColor;
+}
+
+.traffic-lamp.red.on {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.85);
+}
+
+.traffic-lamp.yellow.on {
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.85);
+}
+
+.traffic-lamp.green.on {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.85);
+}
+
+.lamp-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.sensor-gauge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.sensor-gauge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: right;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(247, 241, 230, 0.45));
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sensor-gauge-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 18, 16, 0.22);
+}
+
+.sensor-gauge-card.tone-ok {
+  border-color: rgba(4, 120, 87, 0.28);
+}
+
+.sensor-gauge-card.tone-warning {
+  border-color: rgba(194, 65, 12, 0.35);
+  background: linear-gradient(165deg, rgba(255, 247, 237, 0.9), rgba(254, 243, 199, 0.35));
+}
+
+.sensor-gauge-card.tone-critical {
+  border-color: rgba(185, 28, 28, 0.4);
+  background: linear-gradient(165deg, rgba(254, 242, 242, 0.95), rgba(254, 226, 226, 0.4));
+}
+
+.sensor-gauge-card.tone-nodata {
+  opacity: 0.75;
+}
+
+.sensor-gauge-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.sensor-gauge-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.sensor-gauge-meta strong {
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.sensor-gauge-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.sensor-reading {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sensor-unit {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.range-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 10% 80% 10%;
+  height: 0.55rem;
+  border-radius: 999px;
+  overflow: visible;
+  background: rgba(20, 18, 16, 0.06);
+}
+
+.range-band.soft-lo,
+.range-band.soft-hi {
+  background: rgba(234, 179, 8, 0.45);
+}
+
+.range-band.ok {
+  background: rgba(34, 197, 94, 0.55);
+}
+
+.range-marker {
+  position: absolute;
+  top: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 860px) {
+  .sensor-gauge-grid {
+    grid-template-columns: 1fr;
   }
 }

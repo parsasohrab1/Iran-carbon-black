@@ -70,19 +70,21 @@ docker compose up -d --build dashboard gateway
 
 راهنمای کامل: [docs/OFFLINE_DASHBOARD.fa.md](docs/OFFLINE_DASHBOARD.fa.md)
 
-خلاصه سریع:
+**ذخیره و اجرای بدون اینترنت:**
 
 ```powershell
-# یک‌بار (آنلاین): ایمیج‌ها و npm
-docker compose pull; docker compose build
-cd web; npm install; cd ..
-
-# هر بار (حتی آفلاین):
-.\scripts\dev-dashboard.ps1
-# → http://127.0.0.1:5173  (API از طریق پروکسی به :8080)
+.\scripts\offline-save.ps1    # یک‌بار: بیلد SPA → offline/dashboard
+.\scripts\offline-run.ps1     # هر بار آفلاین: Docker محلی + UI روی :5173
 ```
 
-در VS Code: `Ctrl+Shift+B` → Task **ICB: Live dashboard** یا `F5` با پیکربندی Edge/Chrome.
+توسعه با Hot Reload:
+
+```powershell
+.\scripts\dev-dashboard.ps1
+# → http://127.0.0.1:5173
+```
+
+در VS Code: Task **ICB: Offline run** یا **ICB: Live dashboard**.
 
 داده سنتتیک نمونه:
 
