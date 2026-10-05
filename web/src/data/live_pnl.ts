@@ -166,7 +166,7 @@ export function buildLivePnlSnapshot(args: {
   const scenario_profits = scenarioProfitRows(marketScenarios);
 
   return {
-    as_of_label: "لحظه‌ای · افق " + horizon + " روز",
+    as_of_label: "Instantaneous · horizon " + horizon + " days",
     horizon_days: horizon,
     net_profit_irr: Math.round(net),
     gross_profit_irr: Math.round(grossMonthly),
@@ -176,6 +176,6 @@ export function buildLivePnlSnapshot(args: {
     inbound_freight_irr: Math.round(inbound),
     outbound_distribution_irr: Math.round(outbound),
     scenario_profits,
-    source: "فروش MTD · سبد مواد · صف خرید · سناریوهای بازار",
+    source: "MTD sales · material basket · purchase queue · market scenarios",
   };
 }

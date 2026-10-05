@@ -1,29 +1,29 @@
 -- Phase 4 seed: training catalog for 350+ workforce rollout
 
 INSERT INTO training.courses (id, title, description, domain, duration_minutes, target_roles, is_mandatory, content_url) VALUES
-    ('TRN-SEC-01', 'امنیت سایبری و 2FA', 'آموزش احراز هویت دو مرحله‌ای و حفاظت از حساب کاربری', 'security', 45,
+    ('TRN-SEC-01', 'Cybersecurity and 2FA', 'Training on two-factor authentication and user account protection', 'security', 45,
      '["operator","admin","manager"]'::jsonb, TRUE, '/training/sec-01'),
-    ('TRN-EN-01', 'نگهداری پیش‌بینی‌کننده', 'کار با هشدارهای RUL و برنامه‌ریزی تعمیرات', 'energy', 90,
+    ('TRN-EN-01', 'Predictive maintenance', 'Working with RUL alerts and maintenance planning', 'energy', 90,
      '["operator","maintenance"]'::jsonb, TRUE, '/training/en-01'),
-    ('TRN-QC-01', 'کنترل کیفیت هوشمند', 'ناهنجاری فرآیند و توصیه‌های بهینه‌سازی', 'quality', 75,
+    ('TRN-QC-01', 'Smart quality control', 'Process anomalies and optimization recommendations', 'quality', 75,
      '["operator","quality"]'::jsonb, TRUE, '/training/qc-01'),
-    ('TRN-DM-01', 'تولید مبتنی بر تقاضا', 'خواندن پیش‌بینی تقاضا و برنامه تولید', 'demand', 60,
+    ('TRN-DM-01', 'Demand-driven manufacturing', 'Reading the demand forecast and production plan', 'demand', 60,
      '["planner","manager"]'::jsonb, TRUE, '/training/dm-01'),
-    ('TRN-SC-01', 'خرید هوشمند مواد اولیه', 'پیشنهاد زمان خرید و مناقصات', 'supply', 60,
+    ('TRN-SC-01', 'Smart raw material purchasing', 'Purchase timing suggestions and tenders', 'supply', 60,
      '["procurement"]'::jsonb, FALSE, '/training/sc-01'),
-    ('TRN-SM-01', 'فروش و CRM', 'پیش‌بینی فروش و مدیریت مشتریان کلیدی', 'sales', 60,
+    ('TRN-SM-01', 'Sales and CRM', 'Sales forecasting and key customer management', 'sales', 60,
      '["sales","manager"]'::jsonb, FALSE, '/training/sm-01'),
-    ('TRN-FI-01', 'داشبورد مدیریتی مالی', 'خواندن KPIها و جریان نقدی', 'finance', 45,
+    ('TRN-FI-01', 'Financial management dashboard', 'Reading KPIs and cash flow', 'finance', 45,
      '["finance","manager","executive"]'::jsonb, TRUE, '/training/fi-01'),
-    ('TRN-CH-01', 'مدیریت تغییر سازمانی', 'پذیرش سیستم‌های AI و کاهش مقاومت', 'change', 90,
+    ('TRN-CH-01', 'Organizational change management', 'Adoption of AI systems and reducing resistance', 'change', 90,
      '["all"]'::jsonb, TRUE, '/training/ch-01')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO training.change_requests (title, description, domain, status, impact_level, created_by)
 VALUES
-    ('اجباری‌سازی 2FA برای تمام کاربران', 'فعال‌سازی اجباری احراز هویت دو مرحله‌ای در محیط production', 'security', 'proposed', 'high', 'admin'),
-    ('استقرار داشبورد هیئت‌مدیره', 'انتشار داشبورد یکپارچه مالی-عملیاتی برای مدیران', 'finance', 'accepted', 'medium', 'admin'),
-    ('پایلوت MQTT کیفیت روی خط 1', 'اتصال داده فرآیند کیفیت به ingestion', 'quality', 'deployed', 'medium', 'admin');
+    ('Enforce 2FA for all users', 'Mandatory activation of two-factor authentication in the production environment', 'security', 'proposed', 'high', 'admin'),
+    ('Deploy the board dashboard', 'Publishing an integrated financial-operational dashboard for managers', 'finance', 'accepted', 'medium', 'admin'),
+    ('Quality MQTT pilot on line 1', 'Connecting quality process data to ingestion', 'quality', 'deployed', 'medium', 'admin');
 
 -- Mark admin must change default password in hardened deployments
 UPDATE platform.users

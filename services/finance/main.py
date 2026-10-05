@@ -316,7 +316,7 @@ async def model_info() -> dict:
 
 @router.get("/stock/board")
 async def stock_board(db: AsyncSession = Depends(get_db)) -> dict:
-    """شکربن TSE board: live quote, intraday chart, daily history, trades."""
+    """Shekarbon TSE board: live quote, intraday chart, daily history, trades."""
     fallback = build_static_stock_board()
     try:
         # Append a live tick each poll so the chart moves in near-real-time
@@ -368,7 +368,7 @@ async def stock_board(db: AsyncSession = Depends(get_db)) -> dict:
                 "price": round(new_price, 0),
                 "vol": vol,
                 "val": round(value, 0),
-                "broker": "معاملات برخط",
+                "broker": "Online trading",
             },
         )
         await db.commit()
@@ -444,7 +444,7 @@ async def stock_board(db: AsyncSession = Depends(get_db)) -> dict:
             tr["time"] = str(tr["time"])
 
         return {
-            "source": "finance.stock_* + live tick (شکربن / IRO1CRBN0001)",
+            "source": "finance.stock_* + live tick (Shekarbon / IRO1CRBN0001)",
             "ticker": TICKER,
             "quote": {
                 "last_price": round(last_p, 0),
@@ -461,7 +461,7 @@ async def stock_board(db: AsyncSession = Depends(get_db)) -> dict:
                 "trade_count": len(ticks),
                 "as_of": ticks[-1]["time"],
                 "trend": "up" if day_pct >= 0 else "down",
-                "status": "معاملات پیوسته — به‌روزرسانی لحظه‌ای داشبورد",
+                "status": "Continuous trading — instantaneous dashboard update"
             },
             "intraday": ticks,
             "history_daily": history,

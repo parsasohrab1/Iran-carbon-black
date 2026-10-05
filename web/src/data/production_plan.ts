@@ -171,7 +171,7 @@ export function buildLocalProductionBoard(horizonDays = 30, scheduleDays = 14): 
   }
 
   return {
-    source: "آفلاین — تقاضا (پایه + صف فروش + صادرات) → برنامه تولید",
+    source: "Offline — demand (base + sales queue + exports) → production plan",
     horizon_days: horizonDays,
     schedule_days: scheduleDays,
     plan_date: new Date().toISOString().slice(0, 10),

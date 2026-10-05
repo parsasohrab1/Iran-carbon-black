@@ -1,4 +1,4 @@
--- Export markets schema (Iran Carbon Black / شکربن)
+-- Export markets schema (Iran Carbon Black / Shekarbon)
 
 CREATE TABLE IF NOT EXISTS sales.export_markets (
     id                  VARCHAR(8) PRIMARY KEY,

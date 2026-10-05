@@ -724,7 +724,7 @@ async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
                 "autopilot": False,
                 "applied": [],
                 "skipped": len(alerts_out),
-                "message_fa": "Auto Pilot خاموش است",
+                "message_fa": "Auto Pilot is off",
             }
         )
 
@@ -766,7 +766,7 @@ async def equipment_board(db: AsyncSession = Depends(get_db)) -> dict:
                 "autopilot": False,
                 "applied": [],
                 "skipped": len(alerts),
-                "message_fa": "Auto Pilot خاموش است (حالت آفلاین/fallback)",
+                "message_fa": "Auto Pilot is off (offline/fallback mode)",
             }
         )
         fb = {
@@ -793,9 +793,9 @@ async def process_autopilot_set(body: AutopilotRequest) -> dict:
     enabled = set_autopilot(body.enabled)
     return {
         "enabled": enabled,
-        "message_fa": "Auto Pilot روشن شد — اقدامات واجد شرایط به‌صورت خودکار اجرا می‌شوند"
+        "message_fa": "Auto Pilot turned on — eligible actions are executed automatically"
         if enabled
-        else "Auto Pilot خاموش شد — فقط پیشنهاد دستی فعال است",
+        else "Auto Pilot turned off — only manual suggestions are active",
         "recent_actions": recent_actions(20),
     }
 

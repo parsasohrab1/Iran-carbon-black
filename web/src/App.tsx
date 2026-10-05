@@ -95,16 +95,16 @@ type MaturityDash = {
 };
 
 const TABS: Array<{ id: TabId; label: string }> = [
-  { id: "overview", label: "نمای مدیریتی" },
-  { id: "products", label: "محصولات و گرید" },
-  { id: "supply", label: "تأمین و خرید" },
-  { id: "energy", label: "تجهیزات و انرژی" },
-  { id: "quality", label: "کیفیت" },
-  { id: "demand", label: "تقاضا و تولید" },
-  { id: "commercial", label: "فروش و مالی" },
-  { id: "export", label: "صادرات" },
-  { id: "market", label: "بورس شکربن" },
-  { id: "maturity", label: "بلوغ و MLOps" },
+  { id: "overview", label: "Executive view" },
+  { id: "products", label: "Products and grades" },
+  { id: "supply", label: "Supply and purchasing" },
+  { id: "energy", label: "Equipment and energy" },
+  { id: "quality", label: "Quality" },
+  { id: "demand", label: "Demand and production" },
+  { id: "commercial", label: "Sales and finance" },
+  { id: "export", label: "Exports" },
+  { id: "market", label: "Shekarbon stock" },
+  { id: "maturity", label: "Maturity and MLOps" },
 ];
 
 function Kpi({
@@ -335,7 +335,7 @@ export default function App() {
       setUpdatedAt(new Date().toLocaleString("fa-IR"));
       void loadStock();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "خطا در بارگذاری داشبورد");
+      setError(err instanceof Error ? err.message : "Error loading the dashboard");
     } finally {
       setLoading(false);
     }
@@ -357,7 +357,7 @@ export default function App() {
       setPlans(plansList);
       setUpdatedAt(new Date().toLocaleString("fa-IR"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "خطا در ایجاد برنامه تولید");
+      setError(err instanceof Error ? err.message : "Error creating the production plan");
     } finally {
       setPlanGenerating(false);
     }
@@ -566,8 +566,8 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">Shokrban · AI Platform</div>
-          <h1>کربن ایران</h1>
-          <p>داشبورد یکپارچه هوش مصنوعی برای تولید دوده صنعتی</p>
+          <h1>Iran Carbon</h1>
+          <p>Integrated AI dashboard for industrial carbon black production</p>
         </div>
         <nav className="nav">
           {TABS.map((item) => (
@@ -582,9 +582,9 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-foot">
-          به‌روزرسانی خودکار هر ۶۰ ثانیه
+          Auto-refresh every 60 seconds
           <br />
-          آخرین بار: {updatedAt || "—"}
+          Last time: {updatedAt || "—"}
         </div>
       </aside>
 
@@ -592,28 +592,28 @@ export default function App() {
         <div className="topbar">
           <div>
             <h2>{title}</h2>
-            <p className="subtitle">نمای آنلاین عملیات، کیفیت، بازار و بلوغ محصول</p>
+            <p className="subtitle">Online view of operations, quality, market and product maturity</p>
           </div>
           <div className="actions">
             <button className="btn" type="button" onClick={() => void load()}>
-              تازه‌سازی
+              Refresh
             </button>
             <a className="btn primary" href="/api/v1/finance/dashboard" target="_blank" rel="noreferrer">
-              API زنده
+              Live API
             </a>
           </div>
         </div>
 
-        {loading && !finance && !ops ? <div className="loading">در حال اتصال به سرویس‌ها…</div> : null}
+        {loading && !finance && !ops ? <div className="loading">Connecting to services…</div> : null}
         {error ? (
           <div className="error">
             {error}
             <div style={{ marginTop: "0.75rem" }}>
-              Backend را محلی بالا بیاورید: <code>.\scripts\dev-backend.ps1</code>
+              Bring up the Backend locally: <code>.\scripts\dev-backend.ps1</code>
               <br />
-              یا کل داشبورد: <code>.\scripts\dev-dashboard.ps1</code>
+              Or the whole dashboard: <code>.\scripts\dev-dashboard.ps1</code>
               <br />
-              راهنما: <code>docs/OFFLINE_DASHBOARD.fa.md</code>
+              Guide: <code>docs/OFFLINE_DASHBOARD.fa.md</code>
             </div>
           </div>
         ) : null}
@@ -622,47 +622,47 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="درآمد ماه جاری"
+                label="Revenue this month"
                 value={formatIrr(Number(finance?.sales_mtd?.month_revenue ?? 0))}
-                hint="فروش MTD"
+                hint="MTD sales"
                 tone="ok"
               />
               <Kpi
-                label="هشدار نگهداری باز"
+                label="Open maintenance alerts"
                 value={formatNum(finance?.maintenance_alerts_open ?? 0, 0)}
-                hint="RUL ≤ ۳ روز"
+                hint="RUL ≤ 3 days"
                 tone={(finance?.maintenance_alerts_open ?? 0) > 0 ? "warn" : "ok"}
               />
               <Kpi
-                label="ناهنجاری کیفیت ۲۴س"
+                label="Quality anomalies 24h"
                 value={formatNum(finance?.quality_anomalies_24h ?? 0, 0)}
-                hint="کنترل فرآیند"
+                hint="Process control"
                 tone={(finance?.quality_anomalies_24h ?? 0) > 0 ? "warn" : "ok"}
               />
               <Kpi
-                label="در دسترس بودن سیستم"
-                value={`${formatNum(ops?.availability_pct ?? 0)}٪`}
-                hint={ops?.sla_met ? "SLA برقرار" : "زیر هدف ۹۹.۹٪"}
+                label="System availability"
+                value={`${formatNum(ops?.availability_pct ?? 0)}%`}
+                hint={ops?.sla_met ? "SLA met" : "Below the 99.9% target"}
                 tone={ops?.sla_met ? "ok" : "danger"}
               />
             </div>
 
             <div className="grid kpi">
               <Kpi
-                label={`بورس ${stock.ticker.symbol_fa}`}
+                label={`Stock ${stock.ticker.symbol_fa}`}
                 value={formatNum(stock.quote.last_price, 0)}
-                hint={`${stock.quote.day_change_pct > 0 ? "+" : ""}${formatNum(stock.quote.day_change_pct)}٪ امروز`}
+                hint={`${stock.quote.day_change_pct > 0 ? "+" : ""}${formatNum(stock.quote.day_change_pct)}% today`}
                 tone={stock.quote.day_change_pct >= 0 ? "ok" : "danger"}
               />
               <Kpi
-                label="حجم معاملات امروز"
+                label="Today's trading volume"
                 value={formatNum(stock.quote.volume, 0)}
                 hint={stock.quote.status}
               />
               <Kpi
-                label="تغییر هفته / ماه"
-                value={`${formatNum(stock.quote.week_change_pct)}٪`}
-                hint={`ماهانه ${formatNum(stock.quote.month_change_pct)}٪`}
+                label="Weekly / monthly change"
+                value={`${formatNum(stock.quote.week_change_pct)}%`}
+                hint={`Monthly ${formatNum(stock.quote.month_change_pct)}%`}
                 tone={stock.quote.month_change_pct >= 0 ? "ok" : "danger"}
               />
               <Kpi
@@ -673,14 +673,14 @@ export default function App() {
             </div>
             <div className="actions" style={{ marginBottom: "0.5rem" }}>
               <button type="button" className="btn primary" onClick={() => setTab("market")}>
-                مشاهده تابلو و نمودار لحظه‌ای شکربن
+                View the Shekarbon board and live chart
               </button>
               <button type="button" className="btn" onClick={() => setTab("export")}>
-                بازارهای صادراتی و پیش‌بینی
+                Export markets and forecast
               </button>
             </div>
 
-            <Panel title="تولیدات فعلی کربن ایران">
+            <Panel title="Current Iran Carbon products">
               <div className="grade-cards">
                 {catalog.products.map((p) => (
                   <button
@@ -698,21 +698,21 @@ export default function App() {
                       {p.variant ? ` · ${p.variant}` : ""}
                     </div>
                     <div className="kpi-hint">{p.classification}</div>
-                    <span className="badge ok">در تولید</span>
+                    <span className="badge ok">In production</span>
                   </button>
                 ))}
               </div>
             </Panel>
 
-            <Panel title="قیمت مواد اولیه و بهترین منبع خرید">
+            <Panel title="Raw material prices and best purchase source">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>ماده</th>
-                      <th>قیمت جاری</th>
-                      <th>بهترین تأمین‌کننده</th>
-                      <th>روند</th>
+                      <th>Material</th>
+                      <th>Current price</th>
+                      <th>Best supplier</th>
+                      <th>Trend</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -736,7 +736,7 @@ export default function App() {
                               m.trend === "up" ? "danger" : m.trend === "down" ? "ok" : "neutral"
                             }`}
                           >
-                            {m.trend === "up" ? "صعودی" : m.trend === "down" ? "نزولی" : "پایدار"}
+                            {m.trend === "up" ? "Rising" : m.trend === "down" ? "Falling" : "Stable"}
                           </span>
                         </td>
                       </tr>
@@ -747,12 +747,12 @@ export default function App() {
             </Panel>
 
             <div className="grid two">
-              <Panel title="ریسک انبارداری خرید مواد اولیه">
+              <Panel title="Raw material purchase warehousing risk">
                 <p className="kpi-hint" style={{ marginBottom: "0.65rem" }}>
-                  مرتب‌شده بر اساس شدت ریسک — حیاتی بودن، سهم سبد، زمان تحویل و روند قیمت
+                  Sorted by risk severity — criticality, portfolio share, delivery time and price trend
                 </p>
                 {materialWarehouseRisks.length === 0 ? (
-                  <div className="empty">ماده اولیه‌ای برای ارزیابی نیست.</div>
+                  <div className="empty">No raw material to evaluate.</div>
                 ) : (
                   materialWarehouseRisks.map((r) => (
                     <div
@@ -776,41 +776,41 @@ export default function App() {
                 )}
               </Panel>
 
-              <Panel title="سود و هزینه عملیاتی لحظه‌ای">
+              <Panel title="Instantaneous profit and operating cost">
                 <p className="kpi-hint" style={{ marginBottom: "0.55rem" }}>
                   {livePnl.as_of_label}
                   {livePnl.source ? ` · ${livePnl.source}` : ""}
                 </p>
                 <div className="list-row">
-                  <span>سود خالص در لحظه</span>
+                  <span>Net profit at the moment</span>
                   <strong>{formatIrr(livePnl.net_profit_irr)}</strong>
                 </div>
                 <div className="list-row">
-                  <span>سود ناخالص در لحظه</span>
+                  <span>Gross profit at the moment</span>
                   <strong>{formatIrr(livePnl.gross_profit_irr)}</strong>
                 </div>
                 <div className="list-row">
-                  <span>خرید مواد اولیه</span>
+                  <span>Raw material purchases</span>
                   <span>{formatIrr(livePnl.material_purchase_irr)}</span>
                 </div>
                 <div className="list-row">
-                  <span>میزان فروش</span>
+                  <span>Sales volume</span>
                   <span>{formatIrr(livePnl.sales_irr)}</span>
                 </div>
                 <div className="list-row">
-                  <span>صف خرید (تومان / {formatNum(livePnl.horizon_days, 0)} روز)</span>
+                  <span>Purchase queue (tomans / {formatNum(livePnl.horizon_days, 0)} days)</span>
                   <span>{formatIrr(livePnl.purchase_queue_irr)}</span>
                 </div>
                 <div className="list-row">
-                  <span>حمل مواد تا کارخانه</span>
+                  <span>Material transport to the plant</span>
                   <span>{formatIrr(livePnl.inbound_freight_irr)}</span>
                 </div>
                 <div className="list-row">
-                  <span>توزیع فروش</span>
+                  <span>Sales distribution</span>
                   <span>{formatIrr(livePnl.outbound_distribution_irr)}</span>
                 </div>
                 <p className="kpi-hint" style={{ margin: "0.75rem 0 0.4rem" }}>
-                  سود ناشی از ۵ سناریو در صورت اعمال
+                  Profit from 5 scenarios if applied
                 </p>
                 {livePnl.scenario_profits.map((s) => (
                   <div key={s.id} className="list-row">
@@ -818,7 +818,7 @@ export default function App() {
                       {s.name_fa}
                       {s.recommended ? (
                         <span className="badge ok" style={{ marginRight: "0.35rem" }}>
-                          پیشنهادی
+                          Suggested
                         </span>
                       ) : null}
                     </span>
@@ -840,13 +840,13 @@ export default function App() {
             </div>
 
             <div className="grid two">
-              <Panel title="وضعیت سرویس‌ها">
+              <Panel title="Service status">
                 <table>
                   <thead>
                     <tr>
-                      <th>سرویس</th>
-                      <th>وضعیت</th>
-                      <th>تأخیر (ms)</th>
+                      <th>Service</th>
+                      <th>Status</th>
+                      <th>Latency (ms)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -864,14 +864,14 @@ export default function App() {
                 </table>
               </Panel>
 
-              <Panel title="برنامه تولید پرمارژین">
+              <Panel title="High-margin production plan">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>مقدار (kg)</th>
-                      <th>مارژین</th>
-                      <th>خط</th>
+                      <th>Grade</th>
+                      <th>Quantity (kg)</th>
+                      <th>Margin</th>
+                      <th>Line</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -879,14 +879,14 @@ export default function App() {
                       <tr key={`${row.product_grade}-${idx}`}>
                         <td>{String(row.product_grade)}</td>
                         <td>{formatNum(Number(row.planned_quantity_kg), 0)}</td>
-                        <td>{formatNum(Number(row.margin_score) * 100)}٪</td>
+                        <td>{formatNum(Number(row.margin_score) * 100)}%</td>
                         <td>{String(row.production_line ?? "—")}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {(finance?.high_margin_production?.length ?? 0) === 0 ? (
-                  <div className="empty">هنوز برنامه تولیدی ثبت نشده است.</div>
+                  <div className="empty">No production plan has been recorded yet.</div>
                 ) : null}
               </Panel>
             </div>
@@ -896,19 +896,19 @@ export default function App() {
         {!error && tab === "products" ? (
           <div className="stack">
             <div className="grid kpi">
-              <Kpi label="گرید در تولید" value={formatNum(catalog.count, 0)} hint="برگه مشخصات کیفیت" tone="ok" />
+              <Kpi label="Grades in production" value={formatNum(catalog.count, 0)} hint="Quality specification sheet" tone="ok" />
               <Kpi
-                label="خانواده‌ها"
+                label="Families"
                 value={formatNum(catalog.classifications?.length ?? new Set(catalog.products.map((p) => p.classification)).size, 0)}
                 hint={(catalog.classifications ?? [...new Set(catalog.products.map((p) => p.classification))]).join(" · ")}
               />
               <Kpi
-                label="گرید انتخاب‌شده"
+                label="Selected grade"
                 value={selectedProduct?.code ?? "—"}
                 hint={selectedProduct?.classification ?? ""}
                 tone="ok"
               />
-              <Kpi label="روش‌های ASTM" value={formatNum(catalog.comparison.length, 0)} hint="شاخص کنترل کیفیت" />
+              <Kpi label="ASTM methods" value={formatNum(catalog.comparison.length, 0)} hint="Quality control index" />
             </div>
 
             <div className="grade-cards">
@@ -926,48 +926,48 @@ export default function App() {
                   </div>
                   <div className="th-sub">{p.classification}</div>
                   <p className="grade-desc">{p.description_fa}</p>
-                  <span className="badge ok">در تولید</span>
+                  <span className="badge ok">In production</span>
                 </button>
               ))}
             </div>
 
             {selectedProduct ? (
               <div className="grid two">
-                <Panel title={`شناسنامه محصول — ${selectedProduct.code}`}>
+                <Panel title={`Product data sheet — ${selectedProduct.code}`}>
                   <div className="list-row">
-                    <span>کد ASTM</span>
+                    <span>ASTM code</span>
                     <strong>{selectedProduct.astm_code}</strong>
                   </div>
                   <div className="list-row">
-                    <span>نام تجاری</span>
+                    <span>Trade name</span>
                     <strong>{selectedProduct.trade_name}</strong>
                   </div>
                   <div className="list-row">
-                    <span>نسخه / واریانت</span>
+                    <span>Version / variant</span>
                     <strong>{selectedProduct.variant ?? "—"}</strong>
                   </div>
                   <div className="list-row">
-                    <span>طبقه‌بندی</span>
+                    <span>Classification</span>
                     <strong>{selectedProduct.classification}</strong>
                   </div>
                   <div className="list-row">
-                    <span>وضعیت</span>
-                    <span className="badge ok">تولید جاری</span>
+                    <span>Status</span>
+                    <span className="badge ok">Currently produced</span>
                   </div>
                   <p className="grade-desc" style={{ marginTop: "0.85rem" }}>
                     {selectedProduct.description_fa}
                   </p>
                 </Panel>
 
-                <Panel title="مشخصات کیفیت کامل (Quality Specification)">
+                <Panel title="Complete quality specification (Quality Specification)">
                   <div className="table-scroll">
                     <table>
                       <thead>
                         <tr>
-                          <th>شاخص</th>
+                          <th>Indicator</th>
                           <th>ASTM</th>
-                          <th>مشخصات</th>
-                          <th>واحد</th>
+                          <th>Specification</th>
+                          <th>Unit</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -988,14 +988,14 @@ export default function App() {
               </div>
             ) : null}
 
-            <Panel title="جدول مقایسه‌ای مشخصات کیفیت (Quality Specification)">
+            <Panel title="Quality specification comparison table (Quality Specification)">
               <div className="table-scroll">
                 <table className="spec-table">
                   <thead>
                     <tr>
-                      <th>شاخص / آزمون</th>
+                      <th>Indicator / test</th>
                       <th>ASTM</th>
-                      <th>واحد</th>
+                      <th>Unit</th>
                       {catalog.products.map((p) => (
                         <th key={p.code}>
                           {p.code}
@@ -1026,7 +1026,7 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-              {catalog.source ? <p className="source-note">منبع: {catalog.source}</p> : null}
+              {catalog.source ? <p className="source-note">Source: {catalog.source}</p> : null}
             </Panel>
           </div>
         ) : null}
@@ -1035,18 +1035,18 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="منابع خرید"
+                label="Purchase sources"
                 value={formatNum(procurement.summary?.supplier_count ?? procurement.suppliers.length, 0)}
-                hint="تأمین‌کنندگان فعال"
+                hint="Active suppliers"
                 tone="ok"
               />
               <Kpi
-                label="مواد اولیه"
+                label="Raw materials"
                 value={formatNum(procurement.summary?.material_count ?? procurement.materials.length, 0)}
-                hint="خوراک و انرژی فرآیند"
+                hint="Process feedstock and energy"
               />
               <Kpi
-                label="بهترین قیمت CBFS"
+                label="Best CBFS price"
                 value={
                   procurement.summary?.best_cbfs
                     ? formatIrr(procurement.summary.best_cbfs.price_irr)
@@ -1060,25 +1060,25 @@ export default function App() {
                 tone="ok"
               />
               <Kpi
-                label="منبع داده"
-                value={procurement.materials[0]?.price_source === "database" ? "زنده" : "کاتالوگ"}
+                label="Data source"
+                value={procurement.materials[0]?.price_source === "database" ? "Live" : "Catalog"}
                 hint={procurement.updated_label ?? ""}
               />
             </div>
 
-            <Panel title="تابلوی قیمت به‌روز مواد اولیه">
+            <Panel title="Updated raw material price board">
               <div className="table-scroll">
                 <table className="spec-table">
                   <thead>
                     <tr>
-                      <th>ماده</th>
-                      <th>دسته</th>
-                      <th>قیمت جاری</th>
-                      <th>میانگین پیشنهادها</th>
-                      <th>تغییر ۷ روز</th>
-                      <th>روند</th>
-                      <th>بهترین تأمین‌کننده</th>
-                      <th>واحد</th>
+                      <th>Material</th>
+                      <th>Category</th>
+                      <th>Current price</th>
+                      <th>Average of offers</th>
+                      <th>7-day change</th>
+                      <th>Trend</th>
+                      <th>Best supplier</th>
+                      <th>Unit</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1101,7 +1101,7 @@ export default function App() {
                         <td>
                           {m.change_pct_7d == null
                             ? "—"
-                            : `${m.change_pct_7d > 0 ? "+" : ""}${formatNum(m.change_pct_7d)}٪`}
+                            : `${m.change_pct_7d > 0 ? "+" : ""}${formatNum(m.change_pct_7d)}%`}
                         </td>
                         <td>
                           <span
@@ -1109,7 +1109,7 @@ export default function App() {
                               m.trend === "up" ? "danger" : m.trend === "down" ? "ok" : "neutral"
                             }`}
                           >
-                            {m.trend === "up" ? "صعودی" : m.trend === "down" ? "نزولی" : "پایدار"}
+                            {m.trend === "up" ? "Rising" : m.trend === "down" ? "Falling" : "Stable"}
                           </span>
                         </td>
                         <td>
@@ -1123,20 +1123,20 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-              {procurement.source ? <p className="source-note">منبع: {procurement.source}</p> : null}
+              {procurement.source ? <p className="source-note">Source: {procurement.source}</p> : null}
             </Panel>
 
             {selectedMat ? (
               <div className="grid two">
-                <Panel title={`پیشنهادهای خرید — ${selectedMat.name_fa}`}>
+                <Panel title={`Purchase offers — ${selectedMat.name_fa}`}>
                   <table>
                     <thead>
                       <tr>
-                        <th>تأمین‌کننده</th>
-                        <th>شهر</th>
-                        <th>قیمت</th>
-                        <th>تحویل (روز)</th>
-                        <th>امتیاز</th>
+                        <th>Supplier</th>
+                        <th>City</th>
+                        <th>Price</th>
+                        <th>Delivery (days)</th>
+                        <th>Score</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1156,20 +1156,20 @@ export default function App() {
                   {selectedMat.forecast ? (
                     <div style={{ marginTop: "0.85rem" }}>
                       <div className="list-row">
-                        <span>پیش‌بینی قیمت</span>
+                        <span>Price forecast</span>
                         <strong>{formatIrr(selectedMat.forecast.predicted_price_irr)}</strong>
                       </div>
                       <div className="list-row">
-                        <span>توصیه خرید</span>
+                        <span>Purchase recommendation</span>
                         <span className="badge warn">{selectedMat.forecast.recommendation}</span>
                       </div>
                     </div>
                   ) : null}
                 </Panel>
 
-                <Panel title="شناسنامه ماده">
+                <Panel title="Material data sheet">
                   <div className="list-row">
-                    <span>اهمیت</span>
+                    <span>Importance</span>
                     <span
                       className={`badge ${
                         selectedMat.criticality === "critical"
@@ -1183,35 +1183,35 @@ export default function App() {
                     </span>
                   </div>
                   <div className="list-row">
-                    <span>سهم تقریبی هزینه</span>
-                    <strong>{formatNum(selectedMat.typical_share_pct, 0)}٪</strong>
+                    <span>Approximate cost share</span>
+                    <strong>{formatNum(selectedMat.typical_share_pct, 0)}%</strong>
                   </div>
                   <div className="list-row">
-                    <span>دسته</span>
+                    <span>Category</span>
                     <strong>{selectedMat.category}</strong>
                   </div>
                   <div className="list-row">
-                    <span>آخرین به‌روزرسانی بازار</span>
-                    <span>{selectedMat.market_as_of ?? "کاتالوگ"}</span>
+                    <span>Last market update</span>
+                    <span>{selectedMat.market_as_of ?? "Catalog"}</span>
                   </div>
                 </Panel>
               </div>
             ) : null}
 
-            <Panel title="منابع خرید (تأمین‌کنندگان)">
+            <Panel title="Purchase sources (suppliers)">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>کد</th>
-                      <th>نام</th>
-                      <th>نوع</th>
-                      <th>موقعیت</th>
-                      <th>امتیاز</th>
-                      <th>قابلیت تحویل</th>
-                      <th>کیفیت</th>
-                      <th>شرایط پرداخت</th>
-                      <th>توضیح</th>
+                      <th>Code</th>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Location</th>
+                      <th>Score</th>
+                      <th>Delivery capability</th>
+                      <th>Quality</th>
+                      <th>Payment terms</th>
+                      <th>Description</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1226,7 +1226,7 @@ export default function App() {
                           {(s.city?.includes("?") ? "—" : s.city)} · {(s.province?.includes("?") ? "—" : s.province)}
                         </td>
                         <td>{formatNum(s.rating)}</td>
-                        <td>{formatNum(s.delivery_reliability * 100, 0)}٪</td>
+                        <td>{formatNum(s.delivery_reliability * 100, 0)}%</td>
                         <td>{formatNum(s.quality_rating)}</td>
                         <td>{s.payment_terms?.includes("?") ? "—" : s.payment_terms}</td>
                         <td>{s.notes_fa?.includes("?") ? "—" : s.notes_fa}</td>
@@ -1243,33 +1243,33 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="کل سنسورها"
+                label="Total sensors"
                 value={formatNum(allSensors.length, 0)}
-                hint={`${formatNum(equipmentBoard.summary.equipment_count, 0)} تجهیز`}
+                hint={`${formatNum(equipmentBoard.summary.equipment_count, 0)} equipment`}
                 tone="ok"
               />
               <Kpi
-                label="چراغ سبز"
+                label="Green light"
                 value={formatNum(lampCounts.ok, 0)}
-                hint="در محدوده عملیاتی"
+                hint="Within the operating range"
                 tone="ok"
               />
               <Kpi
-                label="چراغ زرد"
+                label="Yellow light"
                 value={formatNum(lampCounts.warning, 0)}
-                hint="نزدیک حد / هشدار"
+                hint="Near the limit / warning"
                 tone={lampCounts.warning ? "warn" : "ok"}
               />
               <Kpi
-                label="چراغ قرمز"
+                label="Red light"
                 value={formatNum(lampCounts.critical, 0)}
-                hint={`${formatNum(equipmentBoard.summary.open_process_alerts, 0)} هشدار فرآیند`}
+                hint={`${formatNum(equipmentBoard.summary.open_process_alerts, 0)} process alerts`}
                 tone={lampCounts.critical ? "danger" : "ok"}
               />
               <Kpi
-                label="هشدار RUL اجزا"
+                label="Component RUL alerts"
                 value={formatNum(rulBoard.summary.alert_count, 0)}
-                hint={`کمینه RUL: ${formatNum(Number(rulBoard.summary.min_rul_days ?? 0))} روز`}
+                hint={`Minimum RUL: ${formatNum(Number(rulBoard.summary.min_rul_days ?? 0))} days`}
                 tone={
                   (rulBoard.summary.critical_count ?? 0) > 0
                     ? "danger"
@@ -1280,17 +1280,17 @@ export default function App() {
               />
             </div>
 
-            <Panel title="تابلوی چراغی سنسورها — محدوده عملکردی">
+            <Panel title="Sensor light board — operating range">
               <p className="kpi-hint" style={{ marginBottom: "0.75rem" }}>
-                سبز = در محدوده · زرد = نزدیک حد عملیاتی (±۱۰٪ لبه) · قرمز = خارج از محدوده · واحد و مقدار عملکردی روی هر کارت
+                Green = in range · Yellow = near the operating limit (±10% edge) · Red = out of range · unit and operating value on each card
               </p>
               <div className="lamp-filter-row">
                 {(
                   [
-                    ["all", `همه (${allSensors.length})`],
-                    ["ok", `سبز (${lampCounts.ok})`],
-                    ["warning", `زرد (${lampCounts.warning})`],
-                    ["critical", `قرمز (${lampCounts.critical})`],
+                    ["all", `All (${allSensors.length})`],
+                    ["ok", `Green (${lampCounts.ok})`],
+                    ["warning", `Yellow (${lampCounts.warning})`],
+                    ["critical", `Red (${lampCounts.critical})`],
                   ] as const
                 ).map(([id, label]) => (
                   <button
@@ -1314,21 +1314,21 @@ export default function App() {
                   />
                 ))}
               </div>
-              {filteredSensors.length === 0 ? <div className="empty">سنسوری با این فیلتر نیست.</div> : null}
+              {filteredSensors.length === 0 ? <div className="empty">No sensor matches this filter.</div> : null}
             </Panel>
 
-            <Panel title="تابلوی تجهیزات خط تولید کربن بلک">
+            <Panel title="Carbon black production line equipment board">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>کد</th>
-                      <th>تجهیز</th>
-                      <th>ناحیه</th>
-                      <th>خط</th>
-                      <th>سنسورها</th>
-                      <th>خارج از رنج</th>
-                      <th>وضعیت کارکرد</th>
+                      <th>Code</th>
+                      <th>Equipment</th>
+                      <th>Area</th>
+                      <th>Line</th>
+                      <th>Sensors</th>
+                      <th>Out of range</th>
+                      <th>Run state</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1366,13 +1366,13 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-              {equipmentBoard.source ? <p className="source-note">منبع: {equipmentBoard.source}</p> : null}
+              {equipmentBoard.source ? <p className="source-note">Source: {equipmentBoard.source}</p> : null}
             </Panel>
 
             {selectedEquip ? (
-              <Panel title={`جزئیات سنسورها — ${selectedEquip.name_fa}`}>
+              <Panel title={`Sensor details — ${selectedEquip.name_fa}`}>
                 <div className="list-row">
-                  <span>وضعیت کارکرد</span>
+                  <span>Run state</span>
                   <span
                     className={`badge ${
                       selectedEquip.op_status === "critical"
@@ -1386,14 +1386,14 @@ export default function App() {
                   </span>
                 </div>
                 <div className="list-row">
-                  <span>منبع جمع‌آوری داده</span>
+                  <span>Data collection source</span>
                   <strong>
                     {loggerKindLabel(selectedEquip.data_logger?.kind)} —{" "}
                     {selectedEquip.data_logger?.name_fa ?? selectedEquip.data_logger_id ?? "—"}
                   </strong>
                 </div>
                 <div className="list-row">
-                  <span>پروتکل / آدرس</span>
+                  <span>Protocol / address</span>
                   <span>
                     {selectedEquip.data_logger?.protocol ?? "—"}
                     {selectedEquip.data_logger?.host ? ` · ${selectedEquip.data_logger.host}` : ""}
@@ -1412,21 +1412,21 @@ export default function App() {
               </Panel>
             ) : null}
 
-            <Panel title="لایه‌های جمع‌آوری داده — PLC / SCADA / Data Logger">
+            <Panel title="Data collection layers — PLC / SCADA / Data Logger">
               <p className="kpi-hint" style={{ marginBottom: "0.75rem" }}>
-                Data Logger می‌تواند دروازه PLC یا نود SCADA باشد؛ هر سنسور به یکی از این منابع متصل است.
+                A Data Logger can be a PLC gateway or a SCADA node; each sensor is connected to one of these sources.
               </p>
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>کد</th>
-                      <th>نام</th>
-                      <th>نوع</th>
-                      <th>پروتکل</th>
-                      <th>میزبان</th>
-                      <th>بازه نمونه‌برداری</th>
-                      <th>وضعیت</th>
+                      <th>Code</th>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Protocol</th>
+                      <th>Host</th>
+                      <th>Sampling interval</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1435,17 +1435,17 @@ export default function App() {
                         <td>{d.id}</td>
                         <td>
                           <strong>{d.name_fa}</strong>
-                          <div className="kpi-hint">{(d.areas ?? []).join("، ")}</div>
+                          <div className="kpi-hint">{(d.areas ?? []).join(", ")}</div>
                         </td>
                         <td>
                           <span className="badge ok">{loggerKindLabel(d.kind)}</span>
                         </td>
                         <td>{d.protocol}</td>
                         <td>{d.host ?? "—"}</td>
-                        <td>{d.poll_interval_s != null ? `${d.poll_interval_s} ثانیه` : "—"}</td>
+                        <td>{d.poll_interval_s != null ? `${d.poll_interval_s} seconds` : "—"}</td>
                         <td>
                           <span className={`badge ${d.status === "online" ? "ok" : "warn"}`}>
-                            {d.status === "online" ? "آنلاین" : d.status ?? "—"}
+                            {d.status === "online" ? "Online" : d.status ?? "—"}
                           </span>
                         </td>
                       </tr>
@@ -1457,27 +1457,27 @@ export default function App() {
                 <Kpi
                   label="PLC"
                   value={formatNum(equipmentBoard.summary.plc_count ?? 0, 0)}
-                  hint="کنترل‌گر منطقی"
+                  hint="Logic controller"
                 />
                 <Kpi
                   label="SCADA"
                   value={formatNum(equipmentBoard.summary.scada_count ?? 0, 0)}
-                  hint="نظارتی مرکزی"
+                  hint="Central supervisory"
                 />
                 <Kpi
                   label="Data Logger"
                   value={formatNum(equipmentBoard.summary.data_logger_count ?? 0, 0)}
-                  hint="ثبت و ارسال لبه"
+                  hint="Edge recording and forwarding"
                 />
               </div>
             </Panel>
 
-            <Panel title="هشدار عملکرد خارج از محدوده — پیشنهاد هوشمند">
+            <Panel title="Out-of-range performance alert — smart suggestion">
               <div className="autopilot-bar">
                 <div>
                   <strong>Auto Pilot</strong>
                   <div className="kpi-hint">
-                    روشن: اجرای خودکار اقدامات واجد شرایط برای هشدارهای بحرانی · خاموش: فقط پیشنهاد + اجرای دستی
+                    On: automatic execution of eligible actions for critical alerts · Off: suggestion only + manual execution
                   </div>
                 </div>
                 <button
@@ -1485,7 +1485,7 @@ export default function App() {
                   className={`btn autopilot-toggle ${autopilotOn ? "primary on" : ""}`}
                   onClick={() => void toggleAutopilot()}
                 >
-                  {autopilotOn ? "ON — فعال" : "OFF — خاموش"}
+                  {autopilotOn ? "ON — Active" : "OFF — Off"}
                 </button>
               </div>
               {equipmentBoard.autopilot?.message_fa ? (
@@ -1495,7 +1495,7 @@ export default function App() {
               ) : null}
 
               {equipmentBoard.process_alerts.length === 0 ? (
-                <div className="empty">همه سنسورها در محدوده مجاز هستند.</div>
+                <div className="empty">All sensors are within the allowed range.</div>
               ) : (
                 <div className="advice-stack">
                   {equipmentBoard.process_alerts.map((a, idx) => {
@@ -1512,28 +1512,28 @@ export default function App() {
                               {a.equipment_name ?? a.equipment_id} — {a.sensor_name ?? a.sensor_key}
                             </strong>
                             <div className="kpi-hint">
-                              {formatNum(Number(a.measured_value ?? a.value ?? 0), 2)} {a.unit ?? ""} · مجاز{" "}
+                              {formatNum(Number(a.measured_value ?? a.value ?? 0), 2)} {a.unit ?? ""} · allowed{" "}
                               {formatNum(Number(a.min_op ?? 0), 2)}–{formatNum(Number(a.max_op ?? 0), 2)}
                               {a.breach_direction
-                                ? ` · ${a.breach_direction === "high" ? "بالاتر از حد" : "پایین‌تر از حد"}`
+                                ? ` · ${a.breach_direction === "high" ? "above the limit" : "below the limit"}`
                                 : ""}
-                              {a.overshoot_pct != null ? ` · انحراف ${formatNum(a.overshoot_pct)}٪` : ""}
+                              {a.overshoot_pct != null ? ` · deviation ${formatNum(a.overshoot_pct)}%` : ""}
                             </div>
                           </div>
                           <span className={`badge ${a.severity === "critical" ? "danger" : "warn"}`}>
-                            {a.severity === "critical" ? "بحرانی" : "هشدار"}
+                            {a.severity === "critical" ? "Critical" : "Warning"}
                           </span>
                         </div>
 
                         {primary ? (
                           <div className="advice-primary">
-                            <div className="kpi-hint">پیشنهاد اصلی</div>
+                            <div className="kpi-hint">Main suggestion</div>
                             <div className="advice-action">{primary.action_fa}</div>
                             <div className="kpi-hint">
                               {primary.expected_effect_fa}
-                              {primary.risk_fa ? ` · ریسک: ${primary.risk_fa}` : ""}
+                              {primary.risk_fa ? ` · Risk: ${primary.risk_fa}` : ""}
                               {primary.confidence != null
-                                ? ` · اطمینان ${formatNum(primary.confidence * 100, 0)}٪`
+                                ? ` · confidence ${formatNum(primary.confidence * 100, 0)}%`
                                 : ""}
                             </div>
                             <div className="advice-actions-row">
@@ -1541,8 +1541,8 @@ export default function App() {
                                 className={`badge ${primary.auto_eligible || primary.mode === "auto_eligible" ? "ok" : "neutral"}`}
                               >
                                 {primary.auto_eligible || primary.mode === "auto_eligible"
-                                  ? "قابل Auto Pilot"
-                                  : "فقط دستی"}
+                                  ? "Auto Pilot eligible"
+                                  : "Manual only"}
                               </span>
                               <button
                                 type="button"
@@ -1550,7 +1550,7 @@ export default function App() {
                                 disabled={Boolean(busy)}
                                 onClick={() => void applyProcessAdvice(a, primary.action_id, "manual")}
                               >
-                                اجرای دستی
+                                Manual execution
                               </button>
                               {(primary.auto_eligible || primary.mode === "auto_eligible") && !autopilotOn ? (
                                 <button
@@ -1559,7 +1559,7 @@ export default function App() {
                                   disabled={Boolean(busy)}
                                   onClick={() => void applyProcessAdvice(a, primary.action_id, "auto")}
                                 >
-                                  اجرای یک‌باره (شبیه‌سازی auto)
+                                  One-time execution (auto simulation)
                                 </button>
                               ) : null}
                             </div>
@@ -1568,13 +1568,13 @@ export default function App() {
 
                         {(a.recommendations ?? []).length > 1 ? (
                           <details className="advice-more">
-                            <summary>سایر پیشنهادها ({(a.recommendations ?? []).length - 1})</summary>
+                            <summary>Other suggestions ({(a.recommendations ?? []).length - 1})</summary>
                             <ul>
                               {(a.recommendations ?? []).slice(1).map((r) => (
                                 <li key={r.action_id}>
                                   <div className="advice-action">{r.action_fa}</div>
                                   <div className="kpi-hint">
-                                    {r.mode === "manual_only" ? "دستی" : "خودکار"} · {r.expected_effect_fa}
+                                    {r.mode === "manual_only" ? "Manual" : "Auto"} · {r.expected_effect_fa}
                                   </div>
                                   <button
                                     type="button"
@@ -1583,7 +1583,7 @@ export default function App() {
                                     disabled={Boolean(busy)}
                                     onClick={() => void applyProcessAdvice(a, r.action_id, "manual")}
                                   >
-                                    اجرا
+                                    Execute
                                   </button>
                                 </li>
                               ))}
@@ -1598,16 +1598,16 @@ export default function App() {
 
               {processActions.length > 0 ? (
                 <div style={{ marginTop: "1rem" }}>
-                  <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.95rem" }}>لاگ اقدامات (دستی / Auto Pilot)</h4>
+                  <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.95rem" }}>Action log (manual / Auto Pilot)</h4>
                   <div className="table-scroll">
                     <table>
                       <thead>
                         <tr>
-                          <th>زمان</th>
-                          <th>حالت</th>
-                          <th>تجهیز</th>
-                          <th>اقدام</th>
-                          <th>اپراتور</th>
+                          <th>Time</th>
+                          <th>Mode</th>
+                          <th>Equipment</th>
+                          <th>Action</th>
+                          <th>Operator</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1616,7 +1616,7 @@ export default function App() {
                             <td>{new Date(act.applied_at).toLocaleString("fa-IR")}</td>
                             <td>
                               <span className={`badge ${act.mode === "auto" ? "ok" : "neutral"}`}>
-                                {act.mode === "auto" ? "Auto" : "دستی"}
+                                {act.mode === "auto" ? "Auto" : "Manual"}
                               </span>
                             </td>
                             <td>{act.equipment_name ?? act.equipment_id}</td>
@@ -1632,18 +1632,18 @@ export default function App() {
             </Panel>
 
             <div className="grid two">
-              <Panel title="خلاصه هشدارهای رنج">
+              <Panel title="Range alert summary">
                 {equipmentBoard.process_alerts.length === 0 ? (
-                  <div className="empty">هشدار بازی نیست.</div>
+                  <div className="empty">No open alerts.</div>
                 ) : (
                   <div className="table-scroll">
                     <table>
                       <thead>
                         <tr>
-                          <th>تجهیز</th>
-                          <th>سنسور</th>
-                          <th>مقدار</th>
-                          <th>شدت</th>
+                          <th>Equipment</th>
+                          <th>Sensor</th>
+                          <th>Value</th>
+                          <th>Severity</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1656,7 +1656,7 @@ export default function App() {
                             </td>
                             <td>
                               <span className={`badge ${a.severity === "critical" ? "danger" : "warn"}`}>
-                                {a.severity === "critical" ? "بحرانی" : "هشدار"}
+                                {a.severity === "critical" ? "Critical" : "Warning"}
                               </span>
                             </td>
                           </tr>
@@ -1667,50 +1667,50 @@ export default function App() {
                 )}
               </Panel>
 
-              <Panel title="هشدارهای نگهداری پیش‌بینانه (RUL)">
+              <Panel title="Predictive maintenance alerts (RUL)">
                 <p className="kpi-hint" style={{ marginBottom: "0.75rem" }}>
-                  عمر مفید باقی‌مانده برای تسمه، روغن، هوا، یاتاقان، فیلتر، سیل و موتور — آستانه هشدار ≤{" "}
-                  {formatNum(rulBoard.alert_threshold_days ?? 14, 0)} روز
+                  Remaining useful life for belt, oil, air, bearing, filter, seal and motor — alert threshold ≤{" "}
+                  {formatNum(rulBoard.alert_threshold_days ?? 14, 0)} days
                 </p>
                 <div className="lamp-filter-row" style={{ marginBottom: "0.75rem" }}>
                   <button type="button" className="btn primary" disabled={rulScanBusy} onClick={() => void scanComponentRul()}>
-                    {rulScanBusy ? "در حال اسکن…" : "اسکن RUL و ثبت هشدار"}
+                    {rulScanBusy ? "Scanning…" : "Scan RUL and record alerts"}
                   </button>
                   <button
                     type="button"
                     className={`btn ${!rulShowAll ? "primary" : ""}`}
                     onClick={() => setRulShowAll(false)}
                   >
-                    فقط هشدارها ({formatNum(rulBoard.summary.alert_count, 0)})
+                    Alerts only ({formatNum(rulBoard.summary.alert_count, 0)})
                   </button>
                   <button
                     type="button"
                     className={`btn ${rulShowAll ? "primary" : ""}`}
                     onClick={() => setRulShowAll(true)}
                   >
-                    همه اجزا ({formatNum(rulBoard.summary.component_count, 0)})
+                    All components ({formatNum(rulBoard.summary.component_count, 0)})
                   </button>
                 </div>
                 {rulBoard.summary.types_fa?.length ? (
                   <p className="source-note" style={{ marginBottom: "0.75rem" }}>
-                    انواع: {rulBoard.summary.types_fa.join(" · ")}
+                    Types: {rulBoard.summary.types_fa.join(" · ")}
                   </p>
                 ) : null}
                 {rulRows.length === 0 ? (
-                  <div className="empty">هشدار RUL بازی نیست.</div>
+                  <div className="empty">No open RUL alerts.</div>
                 ) : (
                   <div className="table-scroll">
                     <table>
                       <thead>
                         <tr>
-                          <th>نوع</th>
-                          <th>جزء</th>
-                          <th>تجهیز</th>
-                          <th>RUL (روز)</th>
-                          <th>احتمال خرابی</th>
-                          <th>حالت خرابی</th>
-                          <th>اقدام پیشنهادی</th>
-                          <th>شدت</th>
+                          <th>Type</th>
+                          <th>Component</th>
+                          <th>Equipment</th>
+                          <th>RUL (days)</th>
+                          <th>Failure probability</th>
+                          <th>Failure mode</th>
+                          <th>Suggested action</th>
+                          <th>Severity</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1723,7 +1723,7 @@ export default function App() {
                               {a.line_id ? ` · ${a.line_id}` : ""}
                             </td>
                             <td>{formatNum(a.rul_days)}</td>
-                            <td>{formatNum(a.failure_probability * 100, 1)}٪</td>
+                            <td>{formatNum(a.failure_probability * 100, 1)}%</td>
                             <td>{a.failure_mode_fa ?? "—"}</td>
                             <td>{a.recommended_action_fa ?? "—"}</td>
                             <td>
@@ -1739,20 +1739,20 @@ export default function App() {
                 )}
                 {energyAlerts.length > 0 ? (
                   <p className="source-note" style={{ marginTop: "0.75rem" }}>
-                    هشدارهای ثبت‌شده در DB / زنده: {energyAlerts.length}
+                    Alerts recorded in DB / live: {energyAlerts.length}
                     {energyAlerts.some((a) => String(a.alert_type ?? "").startsWith("rul_"))
-                      ? ` (شامل ${energyAlerts.filter((a) => String(a.alert_type ?? "").startsWith("rul_")).length} مورد RUL جزء)`
+                      ? ` (including ${energyAlerts.filter((a) => String(a.alert_type ?? "").startsWith("rul_")).length} component RUL cases)`
                       : ""}
                   </p>
                 ) : null}
                 {rulBoard.source ? (
                   <p className="source-note" style={{ marginTop: "0.35rem" }}>
-                    منبع: {rulBoard.source}
+                    Source: {rulBoard.source}
                   </p>
                 ) : null}
                 {equipment.length > 0 ? (
                   <p className="source-note" style={{ marginTop: "0.35rem" }}>
-                    دارایی‌های ثبت‌شده در DB: {equipment.length}
+                    Assets recorded in DB: {equipment.length}
                   </p>
                 ) : null}
               </Panel>
@@ -1764,28 +1764,28 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="بچ‌های فعال"
+                label="Active batches"
                 value={formatNum(Number(finance?.production?.open_batches ?? 0), 0)}
               />
               <Kpi
-                label="گریدهای فعال"
+                label="Active grades"
                 value={formatNum(Number(finance?.production?.active_grades ?? 0), 0)}
               />
               <Kpi
-                label="ناهنجاری ۲۴ ساعت"
+                label="Anomalies 24 hours"
                 value={formatNum(Number(finance?.quality_anomalies_24h ?? 0), 0)}
                 tone={(finance?.quality_anomalies_24h ?? 0) > 0 ? "warn" : "ok"}
               />
             </div>
-            <Panel title="رویدادهای ناهنجاری کیفیت">
+            <Panel title="Quality anomaly events">
               <table>
                 <thead>
                   <tr>
-                    <th>زمان</th>
-                    <th>بچ</th>
-                    <th>گرید</th>
-                    <th>امتیاز</th>
-                    <th>وضعیت</th>
+                    <th>Time</th>
+                    <th>Batch</th>
+                    <th>Grade</th>
+                    <th>Score</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1797,26 +1797,26 @@ export default function App() {
                       <td>{formatNum(Number(e.anomaly_score), 3)}</td>
                       <td>
                         <span className={`badge ${e.is_anomaly ? "danger" : "ok"}`}>
-                          {e.is_anomaly ? "ناهنجار" : "نرمال"}
+                          {e.is_anomaly ? "Anomalous" : "Normal"}
                         </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {anomalyEvents.length === 0 ? <div className="empty">رویدادی ثبت نشده است.</div> : null}
+              {anomalyEvents.length === 0 ? <div className="empty">No event has been recorded.</div> : null}
             </Panel>
 
-            <Panel title="گریدهای جاری و حدود کنترل کیفیت">
+            <Panel title="Current grades and quality control limits">
               <div className="table-scroll">
                 <table className="spec-table">
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>نام تجاری</th>
-                      <th>عدد ید</th>
+                      <th>Grade</th>
+                      <th>Trade name</th>
+                      <th>Iodine number</th>
                       <th>DBP</th>
-                      <th>سطح ویژه N₂</th>
+                      <th>N₂ surface area</th>
                       <th>Tint</th>
                     </tr>
                   </thead>
@@ -1850,32 +1850,32 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="امتیاز تعادل سناریو"
+                label="Scenario balance score"
                 value={formatNum(marketScenarios.summary.balance_score, 0)}
                 hint={marketScenarios.selected_scenario.name_fa}
                 tone={marketScenarios.summary.balance_score >= 85 ? "ok" : "warn"}
               />
               <Kpi
-                label="ریسک انبارداری"
+                label="Warehousing risk"
                 value={marketScenarios.summary.warehouse_risk}
-                hint={`${formatNum(marketScenarios.summary.total_excess_inventory_kg / 1000, 1)} تن مازاد`}
+                hint={`${formatNum(marketScenarios.summary.total_excess_inventory_kg / 1000, 1)} tons surplus`}
                 tone={riskTone(marketScenarios.summary.warehouse_risk)}
               />
               <Kpi
-                label="ریسک صف فروش"
+                label="Sales queue risk"
                 value={marketScenarios.summary.sales_queue_risk}
-                hint={`${formatNum(marketScenarios.summary.total_sales_queue_kg / 1000, 1)} تن در صف`}
+                hint={`${formatNum(marketScenarios.summary.total_sales_queue_kg / 1000, 1)} tons in queue`}
                 tone={riskTone(marketScenarios.summary.sales_queue_risk)}
               />
               <Kpi
-                label="ریسک صف خرید مواد"
+                label="Material purchase queue risk"
                 value={marketScenarios.summary.purchase_queue_risk}
-                hint={`خوراک ${formatNum(marketScenarios.macros.current.feedstock_basket_irr, 0)} ریال`}
+                hint={`Feedstock ${formatNum(marketScenarios.macros.current.feedstock_basket_irr, 0)} rials`}
                 tone={riskTone(marketScenarios.summary.purchase_queue_risk)}
               />
             </div>
 
-            <Panel title="سناریوی تولید گریدها — نوسان دلار · طلا · نفت · مواد خام">
+            <Panel title="Grade production scenario — dollar · gold · oil · raw material volatility">
               <p className="kpi-hint" style={{ marginBottom: "0.65rem" }}>
                 {(marketScenarios.objectives_fa ?? []).join(" · ")}
               </p>
@@ -1899,26 +1899,26 @@ export default function App() {
 
               <div className="grid kpi" style={{ marginBottom: "0.85rem" }}>
                 <Kpi
-                  label="دلار (ریال)"
+                  label="Dollar (rials)"
                   value={formatNum(marketScenarios.macros.current.usd_irr, 0)}
-                  hint={`${formatNum(marketScenarios.macros.deltas_pct.usd_irr)}٪ نسبت به پایه`}
+                  hint={`${formatNum(marketScenarios.macros.deltas_pct.usd_irr)}% vs. baseline`}
                   tone={marketScenarios.macros.deltas_pct.usd_irr > 5 ? "warn" : "neutral"}
                 />
                 <Kpi
-                  label="طلا (ریال/گرم)"
+                  label="Gold (rials/gram)"
                   value={formatNum(marketScenarios.macros.current.gold_irr_g, 0)}
-                  hint={`${formatNum(marketScenarios.macros.deltas_pct.gold_irr_g)}٪`}
+                  hint={`${formatNum(marketScenarios.macros.deltas_pct.gold_irr_g)}%`}
                   tone={marketScenarios.macros.deltas_pct.gold_irr_g > 5 ? "warn" : "neutral"}
                 />
                 <Kpi
-                  label="نفت برنت (USD)"
+                  label="Brent oil (USD)"
                   value={formatNum(marketScenarios.macros.current.oil_usd, 1)}
-                  hint={`${formatNum(marketScenarios.macros.deltas_pct.oil_usd)}٪`}
+                  hint={`${formatNum(marketScenarios.macros.deltas_pct.oil_usd)}%`}
                 />
                 <Kpi
-                  label="سبد مواد خام"
+                  label="Raw material basket"
                   value={formatNum(marketScenarios.macros.current.feedstock_basket_irr, 0)}
-                  hint={`${formatNum(marketScenarios.macros.deltas_pct.feedstock_basket_irr)}٪ · فشار ${formatNum(marketScenarios.macros.indices.cost_pressure ?? 1, 2)}`}
+                  hint={`${formatNum(marketScenarios.macros.deltas_pct.feedstock_basket_irr)}% · pressure ${formatNum(marketScenarios.macros.indices.cost_pressure ?? 1, 2)}`}
                   tone={(marketScenarios.macros.indices.cost_pressure ?? 1) > 1.1 ? "danger" : "ok"}
                 />
               </div>
@@ -1927,15 +1927,15 @@ export default function App() {
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>اقدام</th>
-                      <th>تولید (تن)</th>
-                      <th>صف فروش</th>
-                      <th>موجودی</th>
-                      <th>مازاد انبار</th>
-                      <th>مارژین تعدیل‌شده</th>
-                      <th>خرید مواد</th>
-                      <th>دلیل</th>
+                      <th>Grade</th>
+                      <th>Action</th>
+                      <th>Production (tons)</th>
+                      <th>Sales queue</th>
+                      <th>Inventory</th>
+                      <th>Warehouse surplus</th>
+                      <th>Adjusted margin</th>
+                      <th>Material purchase</th>
+                      <th>Reason</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1962,12 +1962,12 @@ export default function App() {
                         <td>{formatNum(g.sales_queue_kg / 1000, 1)}</td>
                         <td>
                           {formatNum(g.inventory_on_hand_kg / 1000, 1)}
-                          <div className="kpi-hint">{formatNum(g.inventory_cover_days, 0)} روز پوشش</div>
+                          <div className="kpi-hint">{formatNum(g.inventory_cover_days, 0)} days of coverage</div>
                         </td>
                         <td>{formatNum(g.excess_inventory_kg / 1000, 1)}</td>
                         <td>
-                          {formatNum(g.adjusted_margin * 100)}٪
-                          <div className="kpi-hint">پایه {formatNum(g.base_margin * 100)}٪</div>
+                          {formatNum(g.adjusted_margin * 100)}%
+                          <div className="kpi-hint">Base {formatNum(g.base_margin * 100)}%</div>
                         </td>
                         <td>
                           <span className="badge neutral">{buyAdviceLabelFa(g.feedstock_buy_advice)}</span>
@@ -1984,17 +1984,17 @@ export default function App() {
             </Panel>
 
             <div className="grid two">
-              <Panel title="مقایسه سناریوهای بازار">
+              <Panel title="Market scenario comparison">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>سناریو</th>
-                        <th>امتیاز</th>
-                        <th>انبار</th>
-                        <th>صف فروش</th>
-                        <th>صف خرید</th>
-                        <th>گریدهای اول</th>
+                        <th>Scenario</th>
+                        <th>Score</th>
+                        <th>Warehouse</th>
+                        <th>Sales queue</th>
+                        <th>Purchase queue</th>
+                        <th>Top grades</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2007,7 +2007,7 @@ export default function App() {
                         >
                           <td>
                             <strong>{c.name_fa}</strong>
-                            {c.recommended ? <span className="badge ok" style={{ marginRight: "0.35rem" }}>پیشنهادی</span> : null}
+                            {c.recommended ? <span className="badge ok" style={{ marginRight: "0.35rem" }}>Suggested</span> : null}
                           </td>
                           <td>{formatNum(c.summary.balance_score, 0)}</td>
                           <td>
@@ -2032,14 +2032,14 @@ export default function App() {
                   </table>
                 </div>
               </Panel>
-              <Panel title="اقدام خرید مواد خام (ضد صف خرید)">
+              <Panel title="Raw material purchase action (anti purchase-queue)">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>توصیه</th>
-                      <th>نیاز خوراک (تن)</th>
-                      <th>یادداشت</th>
+                      <th>Grade</th>
+                      <th>Recommendation</th>
+                      <th>Feedstock need (tons)</th>
+                      <th>Note</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2056,38 +2056,38 @@ export default function App() {
                   </tbody>
                 </table>
                 {(marketScenarios.feedstock_actions ?? []).length === 0 ? (
-                  <div className="empty">خرید مواد در حالت نگهداری — صف خرید اضافی لازم نیست.</div>
+                  <div className="empty">Material purchasing is on hold — no extra purchase queue is needed.</div>
                 ) : null}
               </Panel>
             </div>
 
             <div className="grid kpi">
               <Kpi
-                label="تقاضای کل (تن)"
+                label="Total demand (tons)"
                 value={formatNum(productionBoard.summary.total_demand_kg / 1000, 1)}
-                hint={`افق ${formatNum(productionBoard.horizon_days, 0)} روز`}
+                hint={`Horizon ${formatNum(productionBoard.horizon_days, 0)} days`}
               />
               <Kpi
-                label="برنامه تولید (تن)"
+                label="Production plan (tons)"
                 value={formatNum(productionBoard.summary.total_planned_kg / 1000, 1)}
-                hint={`پوشش ظرفیت ${formatNum(productionBoard.summary.coverage_pct)}٪`}
+                hint={`Capacity coverage ${formatNum(productionBoard.summary.coverage_pct)}%`}
                 tone={productionBoard.summary.coverage_pct >= 85 ? "ok" : "warn"}
               />
               <Kpi
-                label="زمان‌بندی‌شده (تن)"
+                label="Scheduled (tons)"
                 value={formatNum(productionBoard.summary.total_scheduled_kg / 1000, 1)}
-                hint={`${formatNum(productionBoard.summary.schedule_slots, 0)} نوبت · ${productionBoard.schedule_days} روز`}
+                hint={`${formatNum(productionBoard.summary.schedule_slots, 0)} slots · ${productionBoard.schedule_days} days`}
                 tone="ok"
               />
               <Kpi
-                label="عقب‌افتادگی (تن)"
+                label="Backlog (tons)"
                 value={formatNum(productionBoard.summary.backlog_kg / 1000, 1)}
                 hint={productionBoard.summary.lines_used.join(" · ") || "—"}
                 tone={productionBoard.summary.backlog_kg > 0 ? "warn" : "ok"}
               />
             </div>
 
-            <Panel title="برنامه تولید مبتنی بر تقاضا">
+            <Panel title="Demand-driven production plan">
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
                 <button
                   type="button"
@@ -2095,25 +2095,25 @@ export default function App() {
                   disabled={planGenerating || loading}
                   onClick={() => void generateProductionPlan()}
                 >
-                  {planGenerating ? "در حال ایجاد…" : "ایجاد برنامه از تقاضا"}
+                  {planGenerating ? "Creating…" : "Create plan from demand"}
                 </button>
                 <span className="kpi-hint" style={{ alignSelf: "center" }}>
-                  {productionBoard.source ?? "پایه + صف فروش + صادرات → ظرفیت خط"}
+                  {productionBoard.source ?? "Base + sales queue + exports → line capacity"}
                 </span>
               </div>
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>پایه</th>
-                      <th>صف فروش</th>
-                      <th>صادرات</th>
-                      <th>تقاضای کل</th>
-                      <th>ایمنی</th>
-                      <th>برنامه</th>
-                      <th>خط</th>
-                      <th>مارژین</th>
+                      <th>Grade</th>
+                      <th>Base</th>
+                      <th>Sales queue</th>
+                      <th>Exports</th>
+                      <th>Total demand</th>
+                      <th>Safety</th>
+                      <th>Plan</th>
+                      <th>Line</th>
+                      <th>Margin</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2129,29 +2129,29 @@ export default function App() {
                         <td>{formatNum(r.safety_stock_kg / 1000, 1)}</td>
                         <td>{formatNum(r.planned_quantity_kg / 1000, 1)}</td>
                         <td>{r.production_line}</td>
-                        <td>{formatNum(r.margin_score * 100)}٪</td>
+                        <td>{formatNum(r.margin_score * 100)}%</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <div className="kpi-hint" style={{ marginTop: "0.5rem" }}>
-                مقادیر به تن · ترکیب تقاضا: ۵۵٪ پایه تاریخی · ۳۰٪ صف فروش · ۱۵٪ سهم صادرات
+                Quantities in tons · demand mix: 55% historical base · 30% sales queue · 15% export share
               </div>
             </Panel>
 
             <div className="grid two">
-              <Panel title={`زمان‌بندی تولید (${productionBoard.schedule_days} روز)`}>
+              <Panel title={`Production schedule (${productionBoard.schedule_days} days)`}>
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>تاریخ</th>
-                        <th>گرید</th>
-                        <th>خط</th>
-                        <th>مقدار (تن)</th>
-                        <th>بهره‌برداری</th>
-                        <th>منبع</th>
+                        <th>Date</th>
+                        <th>Grade</th>
+                        <th>Line</th>
+                        <th>Quantity (tons)</th>
+                        <th>Utilization</th>
+                        <th>Source</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2164,8 +2164,8 @@ export default function App() {
                             <td>{s.product_grade}</td>
                             <td>{s.production_line}</td>
                             <td>{formatNum(s.quantity_kg / 1000, 1)}</td>
-                            <td>{formatNum(s.line_utilization_pct)}٪</td>
-                            <td>{s.demand_source === "forecast+sales+export" ? "تقاضا" : s.demand_source}</td>
+                            <td>{formatNum(s.line_utilization_pct)}%</td>
+                            <td>{s.demand_source === "forecast+sales+export" ? "Demand" : s.demand_source}</td>
                           </tr>
                         ))}
                     </tbody>
@@ -2173,22 +2173,22 @@ export default function App() {
                 </div>
                 {productionBoard.schedule.filter((s) => s.demand_source === "backlog").length > 0 ? (
                   <div className="kpi-hint" style={{ marginTop: "0.5rem" }}>
-                    عقب‌افتادگی:{" "}
+                    Backlog:{" "}
                     {productionBoard.schedule
                       .filter((s) => s.demand_source === "backlog")
-                      .map((s) => `${s.product_grade} ${formatNum(s.quantity_kg / 1000, 1)}ت`)
+                      .map((s) => `${s.product_grade} ${formatNum(s.quantity_kg / 1000, 1)}t`)
                       .join(" · ")}
                   </div>
                 ) : null}
               </Panel>
-              <Panel title="اقدامات موجودی">
+              <Panel title="Inventory actions">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>اقدام</th>
-                      <th>مقدار</th>
-                      <th>صرفه‌جویی برآوردی</th>
+                      <th>Grade</th>
+                      <th>Action</th>
+                      <th>Quantity</th>
+                      <th>Estimated savings</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2202,19 +2202,19 @@ export default function App() {
                     ))}
                   </tbody>
                 </table>
-                {inventoryActions.length === 0 ? <div className="empty">اقدامی ثبت نشده.</div> : null}
+                {inventoryActions.length === 0 ? <div className="empty">No action has been recorded.</div> : null}
               </Panel>
             </div>
 
             <div className="grid two">
-              <Panel title="برنامه‌های ذخیره‌شده">
+              <Panel title="Saved plans">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>مقدار برنامه‌ای</th>
-                      <th>موجودی ایمنی</th>
-                      <th>خط</th>
+                      <th>Grade</th>
+                      <th>Planned quantity</th>
+                      <th>Safety stock</th>
+                      <th>Line</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2228,15 +2228,15 @@ export default function App() {
                     ))}
                   </tbody>
                 </table>
-                {plans.length === 0 ? <div className="empty">برنامه‌ای موجود نیست — دکمه ایجاد را بزنید.</div> : null}
+                {plans.length === 0 ? <div className="empty">No plan is available — press the create button.</div> : null}
               </Panel>
-              <Panel title="گریدهای پرمارژین پیشنهادی">
+              <Panel title="Suggested high-margin grades">
                 <div className="grid three">
                   {(portfolio?.high_margin_focus ?? productionBoard.demand_by_grade.slice(0, 3)).map((g) => (
                     <div className="panel" key={String(g.product_grade)} style={{ boxShadow: "none" }}>
                       <div className="kpi-value">{String(g.product_grade)}</div>
                       <div className="kpi-label">
-                        مارژین {formatNum(Number(g.margin_score) * 100)}٪
+                        Margin {formatNum(Number(g.margin_score) * 100)}%
                       </div>
                       <div className="kpi-hint">
                         {String(
@@ -2259,39 +2259,39 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="مشتریان فعال"
+                label="Active customers"
                 value={formatNum(salesPipeline.summary.active_count, 0)}
-                hint={`${formatNum(salesPipeline.summary.active_monthly_tonnage_kg / 1000, 1)} تن/ماه`}
+                hint={`${formatNum(salesPipeline.summary.active_monthly_tonnage_kg / 1000, 1)} tons/month`}
                 tone="ok"
               />
               <Kpi
-                label="مشتریان بالقوه"
+                label="Potential customers"
                 value={formatNum(salesPipeline.summary.potential_count, 0)}
-                hint={`${formatNum(salesPipeline.summary.potential_monthly_tonnage_kg / 1000, 1)} تن/ماه`}
+                hint={`${formatNum(salesPipeline.summary.potential_monthly_tonnage_kg / 1000, 1)} tons/month`}
               />
               <Kpi
-                label="صف خرید (تن درخواستی)"
+                label="Purchase queue (requested tons)"
                 value={formatNum(salesPipeline.summary.queue_requested_tonnage_kg / 1000, 1)}
-                hint={`${formatNum(salesPipeline.summary.queue_items, 0)} قلم · وزن‌دار ${formatNum(salesPipeline.summary.queue_weighted_tonnage_kg / 1000, 1)} تن`}
+                hint={`${formatNum(salesPipeline.summary.queue_items, 0)} items · weighted ${formatNum(salesPipeline.summary.queue_weighted_tonnage_kg / 1000, 1)} tons`}
                 tone="warn"
               />
               <Kpi
-                label="حاشیه سود"
-                value={`${formatNum(Number(finance?.finance?.profit_margin ?? 0) * 100)}٪`}
+                label="Profit margin"
+                value={`${formatNum(Number(finance?.finance?.profit_margin ?? 0) * 100)}%`}
               />
             </div>
 
             <div className="grid two">
-              <Panel title="مشتریان فعال — تناژ ماهانه">
+              <Panel title="Active customers — monthly tonnage">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>مشتری</th>
-                        <th>منطقه</th>
-                        <th>تناژ ماهانه (kg)</th>
-                        <th>گرید ترجیحی</th>
-                        <th>رابط</th>
+                        <th>Customer</th>
+                        <th>Region</th>
+                        <th>Monthly tonnage (kg)</th>
+                        <th>Preferred grade</th>
+                        <th>Contact</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2318,16 +2318,16 @@ export default function App() {
                 </div>
               </Panel>
 
-              <Panel title="مشتریان بالقوه — تناژ هدف">
+              <Panel title="Potential customers — target tonnage">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>مشتری</th>
-                        <th>مرحله</th>
-                        <th>تناژ هدف (kg)</th>
-                        <th>گرید</th>
-                        <th>رابط</th>
+                        <th>Customer</th>
+                        <th>Stage</th>
+                        <th>Target tonnage (kg)</th>
+                        <th>Grade</th>
+                        <th>Contact</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2357,20 +2357,20 @@ export default function App() {
               </Panel>
             </div>
 
-            <Panel title="صف خرید (Purchase Queue)">
+            <Panel title="Purchase Queue">
               <div className="table-scroll">
                 <table className="spec-table">
                   <thead>
                     <tr>
-                      <th>اولویت</th>
-                      <th>مشتری</th>
-                      <th>وضعیت مشتری</th>
-                      <th>گرید</th>
-                      <th>تناژ درخواستی</th>
-                      <th>احتمال</th>
-                      <th>تناژ وزن‌دار</th>
-                      <th>وضعیت صف</th>
-                      <th>قیمت واحد</th>
+                      <th>Priority</th>
+                      <th>Customer</th>
+                      <th>Customer status</th>
+                      <th>Grade</th>
+                      <th>Requested tonnage</th>
+                      <th>Probability</th>
+                      <th>Weighted tonnage</th>
+                      <th>Queue status</th>
+                      <th>Unit price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2382,14 +2382,14 @@ export default function App() {
                         <td>{q.customer_name ?? q.customer_id}</td>
                         <td>
                           <span className={`badge ${q.customer_status === "active" ? "ok" : "warn"}`}>
-                            {q.customer_status === "active" ? "فعال" : "بالقوه"}
+                            {q.customer_status === "active" ? "Active" : "Potential"}
                           </span>
                         </td>
                         <td>
                           <strong>{q.grade}</strong>
                         </td>
                         <td>{formatNum(q.requested_tonnage_kg, 0)}</td>
-                        <td>{formatNum(q.probability * 100, 0)}٪</td>
+                        <td>{formatNum(q.probability * 100, 0)}%</td>
                         <td>{formatNum(q.weighted_tonnage_kg ?? q.requested_tonnage_kg * q.probability, 0)}</td>
                         <td>{q.status}</td>
                         <td>{formatIrr(q.unit_price_irr)}</td>
@@ -2400,19 +2400,19 @@ export default function App() {
               </div>
             </Panel>
 
-            <Panel title="پیش‌بینی فروش (ML + صف خرید)">
+            <Panel title="Sales forecast (ML + purchase queue)">
               <div className="table-scroll">
                 <table className="spec-table">
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>پایه ML (kg)</th>
-                      <th>صف — درخواستی</th>
-                      <th>صف — وزن‌دار</th>
-                      <th>پیش‌بینی ترکیبی</th>
-                      <th>سهم پایپ‌لاین</th>
-                      <th>درآمد پیش‌بینی</th>
-                      <th>قیمت پیشنهادی</th>
+                      <th>Grade</th>
+                      <th>ML base (kg)</th>
+                      <th>Queue — requested</th>
+                      <th>Queue — weighted</th>
+                      <th>Combined forecast</th>
+                      <th>Pipeline share</th>
+                      <th>Forecast revenue</th>
+                      <th>Suggested price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2427,7 +2427,7 @@ export default function App() {
                         <td>
                           <strong>{formatNum(f.forecast_quantity_kg, 0)}</strong>
                         </td>
-                        <td>{formatNum(f.pipeline_share_pct ?? 0)}٪</td>
+                        <td>{formatNum(f.pipeline_share_pct ?? 0)}%</td>
                         <td>{formatIrr(f.forecast_revenue_irr)}</td>
                         <td>{formatIrr(f.recommended_unit_price)}</td>
                       </tr>
@@ -2435,18 +2435,18 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-              {salesPipeline.source ? <p className="source-note">منبع: {salesPipeline.source}</p> : null}
+              {salesPipeline.source ? <p className="source-note">Source: {salesPipeline.source}</p> : null}
             </Panel>
 
             <div className="grid two">
-              <Panel title="پیش‌بینی‌های ذخیره‌شده">
+              <Panel title="Saved forecasts">
                 <table>
                   <thead>
                     <tr>
-                      <th>گرید</th>
-                      <th>مقدار</th>
-                      <th>درآمد</th>
-                      <th>قیمت پیشنهادی</th>
+                      <th>Grade</th>
+                      <th>Quantity</th>
+                      <th>Revenue</th>
+                      <th>Suggested price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2461,26 +2461,26 @@ export default function App() {
                   </tbody>
                 </table>
               </Panel>
-              <Panel title="CRM — مشتریان در معرض ریزش">
+              <Panel title="CRM — customers at risk of churn">
                 <table>
                   <thead>
                     <tr>
-                      <th>مشتری</th>
-                      <th>ریسک</th>
-                      <th>ارزش طول عمر</th>
+                      <th>Customer</th>
+                      <th>Risk</th>
+                      <th>Lifetime value</th>
                     </tr>
                   </thead>
                   <tbody>
                     {customersAtRisk.map((c) => (
                       <tr key={String(c.id)}>
                         <td>{String(c.name)}</td>
-                        <td>{formatNum(Number(c.churn_risk) * 100)}٪</td>
+                        <td>{formatNum(Number(c.churn_risk) * 100)}%</td>
                         <td>{formatIrr(Number(c.lifetime_value_irr))}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {customersAtRisk.length === 0 ? <div className="empty">موردی نیست.</div> : null}
+                {customersAtRisk.length === 0 ? <div className="empty">None.</div> : null}
               </Panel>
             </div>
           </div>
@@ -2490,51 +2490,51 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="بازارهای بالفعل"
+                label="Actual markets"
                 value={formatNum(exportBoard.summary.actual_markets_count, 0)}
-                hint={`برتر: ${exportBoard.summary.top_market}`}
+                hint={`Top: ${exportBoard.summary.top_market}`}
                 tone="ok"
               />
               <Kpi
-                label="بازارهای بالقوه"
+                label="Potential markets"
                 value={formatNum(exportBoard.summary.potential_markets_count, 0)}
-                hint={`وزن‌دار ${formatNum(exportBoard.summary.potential_weighted_tonnage_kg / 1000, 0)} تن/سال`}
+                hint={`Weighted ${formatNum(exportBoard.summary.potential_weighted_tonnage_kg / 1000, 0)} tons/year`}
               />
               <Kpi
-                label="صادرات YTD"
-                value={`${formatNum(exportBoard.summary.ytd_export_tonnage_kg / 1000, 0)} تن`}
-                hint={`سالانه بالفعل ${formatNum(exportBoard.summary.annual_actual_tonnage_kg / 1000, 0)} تن`}
+                label="Exports YTD"
+                value={`${formatNum(exportBoard.summary.ytd_export_tonnage_kg / 1000, 0)} tons`}
+                hint={`Annual actual ${formatNum(exportBoard.summary.annual_actual_tonnage_kg / 1000, 0)} tons`}
                 tone="ok"
               />
               <Kpi
-                label="پیش‌بینی ۶ ماه"
-                value={`${formatNum(exportBoard.summary.six_month_forecast_kg / 1000, 0)} تن`}
+                label="6-month forecast"
+                value={`${formatNum(exportBoard.summary.six_month_forecast_kg / 1000, 0)} tons`}
                 hint={`${formatNum(exportBoard.summary.six_month_revenue_usd, 0)} USD`}
               />
             </div>
 
-            <Panel title={`${exportBoard.company ?? "کربن ایران"} — HS ${exportBoard.hs_code ?? "280300"}`}>
+            <Panel title={`${exportBoard.company ?? "Iran Carbon"} — HS ${exportBoard.hs_code ?? "280300"}`}>
               <p className="kpi-hint" style={{ marginBottom: "0.75rem" }}>
-                {exportBoard.product} · رشد میانگین بازارهای بالفعل{" "}
-                {formatNum(exportBoard.summary.avg_growth_yoy_pct)}٪ سالانه
+                {exportBoard.product} · average growth of actual markets{" "}
+                {formatNum(exportBoard.summary.avg_growth_yoy_pct)}% per year
               </p>
               <ExportForecastChart rows={exportBoard.export_forecast} />
-              {exportBoard.source ? <p className="source-note">منبع: {exportBoard.source}</p> : null}
+              {exportBoard.source ? <p className="source-note">Source: {exportBoard.source}</p> : null}
             </Panel>
 
             <div className="grid two">
-              <Panel title="بازارهای بالفعل صادراتی">
+              <Panel title="Actual export markets">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>کشور</th>
-                        <th>YTD (تن)</th>
-                        <th>سالانه (تن)</th>
-                        <th>سهم٪</th>
-                        <th>رشد٪</th>
+                        <th>Country</th>
+                        <th>YTD (tons)</th>
+                        <th>Annual (tons)</th>
+                        <th>Share %</th>
+                        <th>Growth %</th>
                         <th>FOB $</th>
-                        <th>گریدها</th>
+                        <th>Grades</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2551,11 +2551,11 @@ export default function App() {
                             <span
                               className={`badge ${(m.growth_yoy_pct ?? 0) >= 0 ? "ok" : "danger"}`}
                             >
-                              {formatNum(m.growth_yoy_pct ?? 0)}٪
+                              {formatNum(m.growth_yoy_pct ?? 0)}%
                             </span>
                           </td>
                           <td>{formatNum(m.avg_fob_usd ?? 0, 0)}</td>
-                          <td>{(m.main_grades ?? []).join("، ")}</td>
+                          <td>{(m.main_grades ?? []).join(", ")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -2563,17 +2563,17 @@ export default function App() {
                 </div>
               </Panel>
 
-              <Panel title="بازارهای بالقوه">
+              <Panel title="Potential markets">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>کشور</th>
-                        <th>هدف سالانه</th>
-                        <th>احتمال</th>
-                        <th>مرحله</th>
-                        <th>رشد٪</th>
-                        <th>ریسک</th>
+                        <th>Country</th>
+                        <th>Annual target</th>
+                        <th>Probability</th>
+                        <th>Stage</th>
+                        <th>Growth %</th>
+                        <th>Risk</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2581,22 +2581,22 @@ export default function App() {
                         <tr key={m.id}>
                           <td>
                             <strong>{m.country_fa}</strong>
-                            <div className="kpi-hint">{(m.main_grades ?? []).join("، ")}</div>
+                            <div className="kpi-hint">{(m.main_grades ?? []).join(", ")}</div>
                           </td>
-                          <td>{formatNum(m.annual_tonnage_kg / 1000, 0)} تن</td>
-                          <td>{formatNum((m.probability ?? 0) * 100, 0)}٪</td>
+                          <td>{formatNum(m.annual_tonnage_kg / 1000, 0)} tons</td>
+                          <td>{formatNum((m.probability ?? 0) * 100, 0)}%</td>
                           <td>
                             <span className="badge">
                               {{
-                                technical_eval: "ارزیابی فنی",
-                                negotiation: "مذاکره",
-                                lead: "سرنخ",
-                                market_study: "مطالعه بازار",
+                                technical_eval: "Technical evaluation",
+                                negotiation: "Negotiation",
+                                lead: "Lead",
+                                market_study: "Market study",
                               }[m.pipeline_stage ?? ""] ?? m.pipeline_stage ?? "—"}
                             </span>
                           </td>
                           <td>
-                            <span className="badge ok">{formatNum(m.growth_yoy_pct ?? 0)}٪</span>
+                            <span className="badge ok">{formatNum(m.growth_yoy_pct ?? 0)}%</span>
                           </td>
                           <td>{m.risk ?? "—"}</td>
                         </tr>
@@ -2607,34 +2607,34 @@ export default function App() {
               </Panel>
             </div>
 
-            <Panel title="جدول پیش‌بینی صادرات (۶ ماه)">
+            <Panel title="Export forecast table (6 months)">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>ماه</th>
-                      <th>پایه بالفعل</th>
-                      <th>افزایش بالقوه</th>
-                      <th>جمع پیش‌بینی</th>
-                      <th>درآمد USD</th>
-                      <th>درآمد ریال</th>
+                      <th>Month</th>
+                      <th>Actual baseline</th>
+                      <th>Potential uplift</th>
+                      <th>Total forecast</th>
+                      <th>Revenue USD</th>
+                      <th>Revenue rials</th>
                       <th>FOB</th>
-                      <th>اطمینان</th>
+                      <th>Confidence</th>
                     </tr>
                   </thead>
                   <tbody>
                     {exportBoard.export_forecast.map((f) => (
                       <tr key={f.month}>
                         <td>{f.month}</td>
-                        <td>{formatNum(f.baseline_tonnage_kg / 1000, 1)} تن</td>
-                        <td>{formatNum(f.pipeline_uplift_kg / 1000, 1)} تن</td>
+                        <td>{formatNum(f.baseline_tonnage_kg / 1000, 1)} tons</td>
+                        <td>{formatNum(f.pipeline_uplift_kg / 1000, 1)} tons</td>
                         <td>
-                          <strong>{formatNum(f.forecast_tonnage_kg / 1000, 1)} تن</strong>
+                          <strong>{formatNum(f.forecast_tonnage_kg / 1000, 1)} tons</strong>
                         </td>
                         <td>{formatNum(f.forecast_revenue_usd, 0)}</td>
                         <td>{formatIrr(f.forecast_revenue_irr)}</td>
                         <td>{formatNum(f.avg_fob_usd, 0)}</td>
-                        <td>{formatNum(f.confidence * 100, 0)}٪</td>
+                        <td>{formatNum(f.confidence * 100, 0)}%</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2642,14 +2642,14 @@ export default function App() {
               </div>
             </Panel>
 
-            <Panel title="منابع ایرانی مرجع">
+            <Panel title="Reference Iranian sources">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>منبع</th>
-                      <th>نقش در داشبورد</th>
-                      <th>آدرس</th>
+                      <th>Source</th>
+                      <th>Role in the dashboard</th>
+                      <th>Address</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2677,47 +2677,47 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label={`آخرین قیمت ${stock.ticker.symbol_fa}`}
+                label={`Last price ${stock.ticker.symbol_fa}`}
                 value={formatNum(stock.quote.last_price, 0)}
                 hint={stock.ticker.isin}
                 tone={stock.quote.trend === "up" ? "ok" : "danger"}
               />
               <Kpi
-                label="تغییر امروز"
-                value={`${stock.quote.day_change_pct > 0 ? "+" : ""}${formatNum(stock.quote.day_change_pct)}٪`}
-                hint={`${stock.quote.day_change > 0 ? "+" : ""}${formatNum(stock.quote.day_change, 0)} ریال`}
+                label="Change today"
+                value={`${stock.quote.day_change_pct > 0 ? "+" : ""}${formatNum(stock.quote.day_change_pct)}%`}
+                hint={`${stock.quote.day_change > 0 ? "+" : ""}${formatNum(stock.quote.day_change, 0)} rials`}
                 tone={stock.quote.day_change_pct >= 0 ? "ok" : "danger"}
               />
               <Kpi
-                label="هفته / ماه"
-                value={`${formatNum(stock.quote.week_change_pct)}٪`}
-                hint={`ماهانه ${formatNum(stock.quote.month_change_pct)}٪`}
+                label="Week / month"
+                value={`${formatNum(stock.quote.week_change_pct)}%`}
+                hint={`Monthly ${formatNum(stock.quote.month_change_pct)}%`}
                 tone={stock.quote.month_change_pct >= 0 ? "ok" : "danger"}
               />
               <Kpi
-                label="حجم معاملات"
+                label="Trading volume"
                 value={formatNum(stock.quote.volume, 0)}
-                hint={`${formatNum(stock.quote.trade_count, 0)} معامله`}
+                hint={`${formatNum(stock.quote.trade_count, 0)} trades`}
               />
             </div>
 
             <Panel title={`${stock.ticker.company_fa} — ${stock.ticker.symbol_fa} (${stock.ticker.symbol_en})`}>
               <div className="list-row">
-                <span>بازار</span>
+                <span>Market</span>
                 <strong>{stock.ticker.market}</strong>
               </div>
               <div className="list-row">
-                <span>صنعت</span>
+                <span>Industry</span>
                 <strong>{stock.ticker.industry}</strong>
               </div>
               <div className="list-row">
-                <span>وضعیت</span>
+                <span>Status</span>
                 <span className={`badge ${stock.quote.trend === "up" ? "ok" : "danger"}`}>
                   {stock.quote.status}
                 </span>
               </div>
               <div className="list-row">
-                <span>به‌روزرسانی</span>
+                <span>Update</span>
                 <span>{stock.quote.as_of}</span>
               </div>
               <div className="actions" style={{ marginTop: "0.85rem" }}>
@@ -2726,17 +2726,17 @@ export default function App() {
                   className={`btn ${stockMode === "intraday" ? "primary" : ""}`}
                   onClick={() => setStockMode("intraday")}
                 >
-                  نمودار لحظه‌ای امروز
+                  Today's live chart
                 </button>
                 <button
                   type="button"
                   className={`btn ${stockMode === "daily" ? "primary" : ""}`}
                   onClick={() => setStockMode("daily")}
                 >
-                  تاریخچه روزانه
+                  Daily history
                 </button>
                 <button type="button" className="btn" onClick={() => void loadStock()}>
-                  تازه‌سازی قیمت
+                  Refresh price
                 </button>
               </div>
               <div style={{ marginTop: "1rem" }}>
@@ -2746,21 +2746,21 @@ export default function App() {
                   up={stock.quote.trend === "up"}
                 />
               </div>
-              {stock.source ? <p className="source-note">منبع: {stock.source}</p> : null}
+              {stock.source ? <p className="source-note">Source: {stock.source}</p> : null}
             </Panel>
 
             <div className="grid two">
-              <Panel title="جزئیات خرید و فروش (معاملات اخیر)">
+              <Panel title="Buy and sell details (recent trades)">
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>زمان</th>
-                        <th>سمت</th>
-                        <th>قیمت</th>
-                        <th>حجم</th>
-                        <th>ارزش</th>
-                        <th>کارگزار</th>
+                        <th>Time</th>
+                        <th>Side</th>
+                        <th>Price</th>
+                        <th>Volume</th>
+                        <th>Value</th>
+                        <th>Broker</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2769,7 +2769,7 @@ export default function App() {
                           <td>{String(t.time).replace("T", " ").slice(0, 19)}</td>
                           <td>
                             <span className={`badge ${t.side === "buy" ? "ok" : "danger"}`}>
-                              {t.side === "buy" ? "خرید" : "فروش"}
+                              {t.side === "buy" ? "Buy" : "Sell"}
                             </span>
                           </td>
                           <td>
@@ -2785,15 +2785,15 @@ export default function App() {
                 </div>
               </Panel>
 
-              <Panel title="عمق بازار (Order Book)">
+              <Panel title="Market depth (Order Book)">
                 <div className="grid two">
                   <div>
-                    <h3 style={{ fontSize: "0.95rem" }}>صف خرید</h3>
+                    <h3 style={{ fontSize: "0.95rem" }}>Buy queue</h3>
                     <table>
                       <thead>
                         <tr>
-                          <th>قیمت</th>
-                          <th>حجم</th>
+                          <th>Price</th>
+                          <th>Volume</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2809,12 +2809,12 @@ export default function App() {
                     </table>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: "0.95rem" }}>صف فروش</h3>
+                    <h3 style={{ fontSize: "0.95rem" }}>Sell queue</h3>
                     <table>
                       <thead>
                         <tr>
-                          <th>قیمت</th>
-                          <th>حجم</th>
+                          <th>Price</th>
+                          <th>Volume</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2831,31 +2831,31 @@ export default function App() {
                   </div>
                 </div>
                 <div className="list-row" style={{ marginTop: "0.75rem" }}>
-                  <span>باز / بالا / پایین</span>
+                  <span>Open / High / Low</span>
                   <strong>
                     {formatNum(stock.quote.open_price, 0)} / {formatNum(stock.quote.high_price, 0)} /{" "}
                     {formatNum(stock.quote.low_price, 0)}
                   </strong>
                 </div>
                 <div className="list-row">
-                  <span>ارزش معاملات امروز</span>
+                  <span>Today's trading value</span>
                   <strong>{formatIrr(stock.quote.value_irr)}</strong>
                 </div>
               </Panel>
             </div>
 
-            <Panel title="تاریخچه رشد / نزول روزانه">
+            <Panel title="Daily gain / loss history">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>تاریخ</th>
-                      <th>باز</th>
-                      <th>بالا</th>
-                      <th>پایین</th>
-                      <th>پایانی</th>
-                      <th>تغییر٪</th>
-                      <th>حجم</th>
+                      <th>Date</th>
+                      <th>Open</th>
+                      <th>High</th>
+                      <th>Low</th>
+                      <th>Close</th>
+                      <th>Change %</th>
+                      <th>Volume</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2872,7 +2872,7 @@ export default function App() {
                           <span
                             className={`badge ${(d.change_pct ?? 0) >= 0 ? "ok" : "danger"}`}
                           >
-                            {formatNum(d.change_pct ?? 0)}٪
+                            {formatNum(d.change_pct ?? 0)}%
                           </span>
                         </td>
                         <td>{formatNum(d.volume, 0)}</td>
@@ -2889,30 +2889,30 @@ export default function App() {
           <div className="stack">
             <div className="grid kpi">
               <Kpi
-                label="مدل‌های Production"
+                label="Production models"
                 value={formatNum(maturity?.production_models?.length ?? 0, 0)}
               />
               <Kpi
-                label="هدف منافع سالانه"
+                label="Annual benefit target"
                 value={formatIrr(Number(maturity?.targets?.annual_benefits_irr ?? 200e9))}
               />
               <Kpi
-                label="NPV تقریبی"
+                label="Approximate NPV"
                 value={formatIrr(Number(maturity?.latest_roi?.npv_proxy_irr ?? 0))}
               />
               <Kpi
-                label="هدف Payback"
-                value={`${formatNum(maturity?.targets?.payback_months ?? 24, 0)} ماه`}
+                label="Payback target"
+                value={`${formatNum(maturity?.targets?.payback_months ?? 24, 0)} months`}
               />
             </div>
             <div className="grid two">
-              <Panel title="رجیستری مدل">
+              <Panel title="Model registry">
                 <table>
                   <thead>
                     <tr>
-                      <th>دامنه</th>
-                      <th>نسخه</th>
-                      <th>وضعیت</th>
+                      <th>Domain</th>
+                      <th>Version</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2928,13 +2928,13 @@ export default function App() {
                   </tbody>
                 </table>
               </Panel>
-              <Panel title="اقدامات موجودی ۷ روز">
+              <Panel title="7-day inventory actions">
                 <table>
                   <thead>
                     <tr>
-                      <th>اقدام</th>
-                      <th>تعداد</th>
-                      <th>صرفه‌جویی</th>
+                      <th>Action</th>
+                      <th>Count</th>
+                      <th>Savings</th>
                     </tr>
                   </thead>
                   <tbody>

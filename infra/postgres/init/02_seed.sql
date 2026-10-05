@@ -1,14 +1,14 @@
 -- Seed synthetic / reference data aligned with SRS appendix samples
 
 INSERT INTO supply.suppliers (id, name, rating, delivery_reliability, quality_rating) VALUES
-    ('SUP-0012', 'پتروشیمی تبریز', 4.2, 0.92, 4.5),
-    ('SUP-0003', 'پالایشگاه اصفهان', 4.0, 0.88, 4.1),
-    ('SUP-0008', 'پتروشیمی بندر امام', 3.8, 0.85, 4.0)
+    ('SUP-0012', 'Tabriz Petrochemical', 4.2, 0.92, 4.5),
+    ('SUP-0003', 'Isfahan Refinery', 4.0, 0.88, 4.1),
+    ('SUP-0008', 'Bandar Imam Petrochemical', 3.8, 0.85, 4.0)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO sales.customers (id, name, segment, industry, annual_consumption_kg, region) VALUES
-    ('CUST-0047', 'تایر سهند', 'tire_manufacturer', 'tire', 180000, 'domestic'),
-    ('CUST-0012', 'لاستیک بارز', 'tire_manufacturer', 'tire', 220000, 'domestic'),
+    ('CUST-0047', 'Sahand Tire', 'tire_manufacturer', 'tire', 180000, 'domestic'),
+    ('CUST-0012', 'Barez Rubber', 'tire_manufacturer', 'tire', 220000, 'domestic'),
     ('CUST-0099', 'Export Partner UAE', 'distributor', 'rubber', 95000, 'export')
 ON CONFLICT DO NOTHING;
 
@@ -28,12 +28,12 @@ INSERT INTO demand.historical_demand (month, product_grade, quantity_kg) VALUES
 ON CONFLICT DO NOTHING;
 
 INSERT INTO supply.price_history (time, material, price_irr, source) VALUES
-    ('2026-01-15', 'قطران (فورفورال اکسترکت)', 38000, 'market'),
-    ('2026-02-15', 'قطران (فورفورال اکسترکت)', 39500, 'market'),
-    ('2026-03-15', 'قطران (فورفورال اکسترکت)', 41000, 'market'),
-    ('2026-04-15', 'قطران (فورفورال اکسترکت)', 40500, 'market'),
-    ('2026-05-15', 'قطران (فورفورال اکسترکت)', 41800, 'market'),
-    ('2026-06-15', 'قطران (فورفورال اکسترکت)', 42500, 'market');
+    ('2026-01-15', 'Coal tar (furfural extract)', 38000, 'market'),
+    ('2026-02-15', 'Coal tar (furfural extract)', 39500, 'market'),
+    ('2026-03-15', 'Coal tar (furfural extract)', 41000, 'market'),
+    ('2026-04-15', 'Coal tar (furfural extract)', 40500, 'market'),
+    ('2026-05-15', 'Coal tar (furfural extract)', 41800, 'market'),
+    ('2026-06-15', 'Coal tar (furfural extract)', 42500, 'market');
 
 INSERT INTO sales.orders (sale_date, customer_id, grade, quantity_kg, unit_price_irr, total_price_irr, region, economic_indicators) VALUES
     ('2026-07-15', 'CUST-0047', 'N330', 24500, 185000, 4532500000, 'domestic',

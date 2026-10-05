@@ -1,9 +1,9 @@
--- Seed شکربن daily history + intraday ticks
+-- Seed Shekarbon daily history + intraday ticks
 
 INSERT INTO finance.stock_daily (trade_date, symbol, open_price, high_price, low_price, close_price, volume, value_irr, change_pct)
 SELECT
     d::date,
-    'شکربن',
+    'Shekarbon',
     26000 + (row_number() OVER (ORDER BY d)) * 35 + (random() * 400)::int,
     0, 0, 0,
     (1800000 + random() * 2200000)::bigint,
@@ -28,10 +28,10 @@ WHERE value_irr = 0 OR value_irr IS NULL;
 INSERT INTO finance.stock_quotes (time, symbol, price, volume, value_irr, side, source)
 SELECT
     date_trunc('day', NOW()) + (m || ' minutes')::interval + INTERVAL '5 hours 30 minutes',
-    'شکربن',
+    'Shekarbon',
     (
         SELECT close_price FROM finance.stock_daily
-        WHERE symbol = 'شکربن' ORDER BY trade_date DESC LIMIT 1
+        WHERE symbol = 'Shekarbon' ORDER BY trade_date DESC LIMIT 1
     ) * (1 + (random() - 0.48) * 0.02),
     (50000 + random() * 250000)::bigint,
     0,
@@ -51,7 +51,7 @@ SELECT
     q.price,
     q.volume,
     q.value_irr,
-    CASE WHEN random() > 0.5 THEN 'کارگزاری مفید' ELSE 'کارگزاری آگاه' END,
+    CASE WHEN random() > 0.5 THEN 'Mofid Brokerage' ELSE 'Agah Brokerage' END,
     'simulator'
 FROM finance.stock_quotes q
 ORDER BY q.time DESC

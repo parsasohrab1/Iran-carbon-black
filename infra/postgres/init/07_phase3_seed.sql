@@ -1,8 +1,8 @@
 -- Phase 3 seed: richer sales history, CRM profiles, ERP webhook stub
 
 INSERT INTO sales.customers (id, name, segment, industry, annual_consumption_kg, region) VALUES
-    ('CUST-0021', 'کویر تایر', 'tire_manufacturer', 'tire', 150000, 'domestic'),
-    ('CUST-0033', 'ایران تایر', 'tire_manufacturer', 'tire', 195000, 'domestic'),
+    ('CUST-0021', 'Kavir Tire', 'tire_manufacturer', 'tire', 150000, 'domestic'),
+    ('CUST-0033', 'Iran Tire', 'tire_manufacturer', 'tire', 195000, 'domestic'),
     ('CUST-0055', 'RubberTech TR', 'compounder', 'rubber', 60000, 'export'),
     ('CUST-0070', 'Cable Poly Iran', 'industrial', 'cable', 40000, 'domestic')
 ON CONFLICT DO NOTHING;

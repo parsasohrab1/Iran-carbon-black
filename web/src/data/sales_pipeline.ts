@@ -63,34 +63,34 @@ export type SalesPipeline = {
 export function buildLocalSalesPipeline(): SalesPipeline {
   // Dynamic import avoided — duplicate minimal static from shared catalog via API fallback path
   const active: PipelineCustomer[] = [
-    { id: "CUST-0047", name: "تایر سهند", status: "active", monthly_tonnage_kg: 15000, region: "domestic", preferred_grades: ["N330", "N220"], contact_person: "مهندس رضایی" },
-    { id: "CUST-0012", name: "لاستیک بارز", status: "active", monthly_tonnage_kg: 18300, region: "domestic", preferred_grades: ["N220", "N234"], contact_person: "خانم کریمی" },
-    { id: "CUST-0021", name: "کویر تایر", status: "active", monthly_tonnage_kg: 12500, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "آقای موسوی" },
-    { id: "CUST-0033", name: "ایران تایر", status: "active", monthly_tonnage_kg: 16250, region: "domestic", preferred_grades: ["N330", "N339"], contact_person: "مهندس احمدی" },
+    { id: "CUST-0047", name: "Sahand Tire", status: "active", monthly_tonnage_kg: 15000, region: "domestic", preferred_grades: ["N330", "N220"], contact_person: "Eng. Rezaei" },
+    { id: "CUST-0012", name: "Barez Rubber", status: "active", monthly_tonnage_kg: 18300, region: "domestic", preferred_grades: ["N220", "N234"], contact_person: "Ms. Karimi" },
+    { id: "CUST-0021", name: "Kavir Tire", status: "active", monthly_tonnage_kg: 12500, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "Mr. Mousavi" },
+    { id: "CUST-0033", name: "Iran Tire", status: "active", monthly_tonnage_kg: 16250, region: "domestic", preferred_grades: ["N330", "N339"], contact_person: "Eng. Ahmadi" },
     { id: "CUST-0099", name: "Export Partner UAE", status: "active", monthly_tonnage_kg: 7900, region: "export", preferred_grades: ["N550"], contact_person: "Mr. Al-Farsi" },
     { id: "CUST-0055", name: "RubberTech TR", status: "active", monthly_tonnage_kg: 5000, region: "export", preferred_grades: ["N660"], contact_person: "Ms. Yilmaz" },
-    { id: "CUST-0070", name: "Cable Poly Iran", status: "active", monthly_tonnage_kg: 3300, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "مهندس نوری" },
+    { id: "CUST-0070", name: "Cable Poly Iran", status: "active", monthly_tonnage_kg: 3300, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "Eng. Nouri" },
   ];
   const potential: PipelineCustomer[] = [
-    { id: "CUST-0101", name: "تایر یزد", status: "potential", monthly_tonnage_kg: 7500, region: "domestic", preferred_grades: ["N330", "N220"], contact_person: "آقای حسینی", pipeline_stage: "technical_eval" },
-    { id: "CUST-0102", name: "لاستیک دنا", status: "potential", monthly_tonnage_kg: 9200, region: "domestic", preferred_grades: ["N330", "N339"], contact_person: "خانم مرادی", pipeline_stage: "sample" },
-    { id: "CUST-0103", name: "پارس رابر", status: "potential", monthly_tonnage_kg: 3750, region: "domestic", preferred_grades: ["N339", "N375"], contact_person: "مهندس کاظمی", pipeline_stage: "proposal" },
+    { id: "CUST-0101", name: "Yazd Tire", status: "potential", monthly_tonnage_kg: 7500, region: "domestic", preferred_grades: ["N330", "N220"], contact_person: "Mr. Hosseini", pipeline_stage: "technical_eval" },
+    { id: "CUST-0102", name: "Dena Rubber", status: "potential", monthly_tonnage_kg: 9200, region: "domestic", preferred_grades: ["N330", "N339"], contact_person: "Ms. Moradi", pipeline_stage: "sample" },
+    { id: "CUST-0103", name: "Pars Rubber", status: "potential", monthly_tonnage_kg: 3750, region: "domestic", preferred_grades: ["N339", "N375"], contact_person: "Eng. Kazemi", pipeline_stage: "proposal" },
     { id: "CUST-0104", name: "Gulf Tire Co.", status: "potential", monthly_tonnage_kg: 10800, region: "export", preferred_grades: ["N220", "N234"], contact_person: "Mr. Rahman", pipeline_stage: "commercial" },
-    { id: "CUST-0105", name: "آریا سیم و کابل", status: "potential", monthly_tonnage_kg: 2300, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "خانم جعفری", pipeline_stage: "discovery" },
+    { id: "CUST-0105", name: "Arya Wire & Cable", status: "potential", monthly_tonnage_kg: 2300, region: "domestic", preferred_grades: ["N550", "N660"], contact_person: "Ms. Jafari", pipeline_stage: "discovery" },
   ];
   const purchase_queue: QueueItem[] = [
-    { customer_id: "CUST-0047", customer_name: "تایر سهند", grade: "N330", requested_tonnage_kg: 18000, priority: 1, status: "queued", probability: 0.85, unit_price_irr: 188000, weighted_tonnage_kg: 15300 },
-    { customer_id: "CUST-0012", customer_name: "لاستیک بارز", grade: "N220", requested_tonnage_kg: 22000, priority: 1, status: "queued", probability: 0.9, unit_price_irr: 196000, weighted_tonnage_kg: 19800 },
-    { customer_id: "CUST-0012", customer_name: "لاستیک بارز", grade: "N234", requested_tonnage_kg: 12000, priority: 2, status: "negotiating", probability: 0.7, unit_price_irr: 205000, weighted_tonnage_kg: 8400 },
-    { customer_id: "CUST-0033", customer_name: "ایران تایر", grade: "N330", requested_tonnage_kg: 15000, priority: 2, status: "queued", probability: 0.8, unit_price_irr: 187000, weighted_tonnage_kg: 12000 },
-    { customer_id: "CUST-0021", customer_name: "کویر تایر", grade: "N550", requested_tonnage_kg: 10000, priority: 3, status: "queued", probability: 0.65, unit_price_irr: 165000, weighted_tonnage_kg: 6500 },
+    { customer_id: "CUST-0047", customer_name: "Sahand Tire", grade: "N330", requested_tonnage_kg: 18000, priority: 1, status: "queued", probability: 0.85, unit_price_irr: 188000, weighted_tonnage_kg: 15300 },
+    { customer_id: "CUST-0012", customer_name: "Barez Rubber", grade: "N220", requested_tonnage_kg: 22000, priority: 1, status: "queued", probability: 0.9, unit_price_irr: 196000, weighted_tonnage_kg: 19800 },
+    { customer_id: "CUST-0012", customer_name: "Barez Rubber", grade: "N234", requested_tonnage_kg: 12000, priority: 2, status: "negotiating", probability: 0.7, unit_price_irr: 205000, weighted_tonnage_kg: 8400 },
+    { customer_id: "CUST-0033", customer_name: "Iran Tire", grade: "N330", requested_tonnage_kg: 15000, priority: 2, status: "queued", probability: 0.8, unit_price_irr: 187000, weighted_tonnage_kg: 12000 },
+    { customer_id: "CUST-0021", customer_name: "Kavir Tire", grade: "N550", requested_tonnage_kg: 10000, priority: 3, status: "queued", probability: 0.65, unit_price_irr: 165000, weighted_tonnage_kg: 6500 },
     { customer_id: "CUST-0099", customer_name: "Export Partner UAE", grade: "N550", requested_tonnage_kg: 9000, priority: 2, status: "confirmed", probability: 0.95, unit_price_irr: 172000, weighted_tonnage_kg: 8550 },
     { customer_id: "CUST-0055", customer_name: "RubberTech TR", grade: "N660", requested_tonnage_kg: 6000, priority: 3, status: "queued", probability: 0.6, unit_price_irr: 158000, weighted_tonnage_kg: 3600 },
-    { customer_id: "CUST-0101", customer_name: "تایر یزد", grade: "N330", requested_tonnage_kg: 8000, priority: 2, status: "queued", probability: 0.45, unit_price_irr: 185000, weighted_tonnage_kg: 3600 },
-    { customer_id: "CUST-0102", customer_name: "لاستیک دنا", grade: "N339", requested_tonnage_kg: 7000, priority: 3, status: "negotiating", probability: 0.4, unit_price_irr: 190000, weighted_tonnage_kg: 2800 },
+    { customer_id: "CUST-0101", customer_name: "Yazd Tire", grade: "N330", requested_tonnage_kg: 8000, priority: 2, status: "queued", probability: 0.45, unit_price_irr: 185000, weighted_tonnage_kg: 3600 },
+    { customer_id: "CUST-0102", customer_name: "Dena Rubber", grade: "N339", requested_tonnage_kg: 7000, priority: 3, status: "negotiating", probability: 0.4, unit_price_irr: 190000, weighted_tonnage_kg: 2800 },
     { customer_id: "CUST-0104", customer_name: "Gulf Tire Co.", grade: "N220", requested_tonnage_kg: 14000, priority: 1, status: "queued", probability: 0.55, unit_price_irr: 210000, weighted_tonnage_kg: 7700 },
-    { customer_id: "CUST-0103", customer_name: "پارس رابر", grade: "N375", requested_tonnage_kg: 4500, priority: 4, status: "queued", probability: 0.35, unit_price_irr: 192000, weighted_tonnage_kg: 1575 },
-    { customer_id: "CUST-0105", customer_name: "آریا سیم و کابل", grade: "N550", requested_tonnage_kg: 3000, priority: 4, status: "queued", probability: 0.3, unit_price_irr: 160000, weighted_tonnage_kg: 900 },
+    { customer_id: "CUST-0103", customer_name: "Pars Rubber", grade: "N375", requested_tonnage_kg: 4500, priority: 4, status: "queued", probability: 0.35, unit_price_irr: 192000, weighted_tonnage_kg: 1575 },
+    { customer_id: "CUST-0105", customer_name: "Arya Wire & Cable", grade: "N550", requested_tonnage_kg: 3000, priority: 4, status: "queued", probability: 0.3, unit_price_irr: 160000, weighted_tonnage_kg: 900 },
   ];
 
   const byGrade: Record<string, { req: number; w: number; rev: number }> = {};
@@ -141,16 +141,16 @@ function isGarbled(value?: string | null): boolean {
 }
 
 const REGION_FA: Record<string, string> = {
-  domestic: "داخلی",
-  export: "صادرات",
+  domestic: "Domestic",
+  export: "Export",
 };
 
 const STAGE_FA: Record<string, string> = {
-  technical_eval: "ارزیابی فنی",
-  sample: "نمونه",
-  proposal: "پیشنهاد",
-  commercial: "مذاکره تجاری",
-  discovery: "کشف فرصت",
+  technical_eval: "Technical evaluation",
+  sample: "Sample",
+  proposal: "Proposal",
+  commercial: "Commercial negotiation",
+  discovery: "Opportunity discovery",
 };
 
 /** Overlay Persian CRM labels from offline catalog so ??? never reaches the UI. */

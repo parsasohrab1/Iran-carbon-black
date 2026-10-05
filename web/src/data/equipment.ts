@@ -179,247 +179,247 @@ type Spec = {
 const SPECS: Spec[] = [
   {
     id: "FUR-001",
-    name_fa: "کوره واکنش خط ۱",
+    name_fa: "Line 1 reaction furnace",
     type: "furnace",
-    location: "سالن راکتور",
+    location: "Reactor hall",
     line_id: "Line_1",
-    area: "واکنش",
+    area: "Reaction",
     sensors: [
-      { key: "temperature", name_fa: "دمای واکنش", unit: "°C", min: 1450, max: 1850, crit: "critical" },
-      { key: "pressure", name_fa: "فشار هوا", unit: "kPa", min: 8, max: 25 },
-      { key: "oil_feed_rate", name_fa: "دبی روغن", unit: "kg/h", min: 1800, max: 4200, crit: "critical" },
-      { key: "air_flow", name_fa: "دبی هوا", unit: "Nm³/h", min: 12000, max: 28000, crit: "critical" },
+      { key: "temperature", name_fa: "Reaction temperature", unit: "°C", min: 1450, max: 1850, crit: "critical" },
+      { key: "pressure", name_fa: "Air pressure", unit: "kPa", min: 8, max: 25 },
+      { key: "oil_feed_rate", name_fa: "Oil flow", unit: "kg/h", min: 1800, max: 4200, crit: "critical" },
+      { key: "air_flow", name_fa: "Air flow", unit: "Nm³/h", min: 12000, max: 28000, crit: "critical" },
     ],
   },
   {
     id: "FUR-002",
-    name_fa: "کوره واکنش خط ۲",
+    name_fa: "Line 2 reaction furnace",
     type: "furnace",
-    location: "سالن راکتور",
+    location: "Reactor hall",
     line_id: "Line_2",
-    area: "واکنش",
+    area: "Reaction",
     sensors: [
-      { key: "temperature", name_fa: "دمای واکنش", unit: "°C", min: 1450, max: 1850, crit: "critical" },
-      { key: "oil_feed_rate", name_fa: "دبی روغن", unit: "kg/h", min: 1600, max: 4000, crit: "critical" },
-      { key: "air_flow", name_fa: "دبی هوا", unit: "Nm³/h", min: 11000, max: 26000, crit: "critical" },
+      { key: "temperature", name_fa: "Reaction temperature", unit: "°C", min: 1450, max: 1850, crit: "critical" },
+      { key: "oil_feed_rate", name_fa: "Oil flow", unit: "kg/h", min: 1600, max: 4000, crit: "critical" },
+      { key: "air_flow", name_fa: "Air flow", unit: "Nm³/h", min: 11000, max: 26000, crit: "critical" },
     ],
   },
   {
     id: "AIR-001",
-    name_fa: "دمنده و پیش‌گرم هوا",
+    name_fa: "Air blower and preheater",
     type: "blower",
-    location: "یوتیلیتی هوا",
+    location: "Air utility",
     line_id: "Line_1",
-    area: "تغذیه",
+    area: "Feed",
     sensors: [
-      { key: "air_flow", name_fa: "دبی هوا", unit: "Nm³/h", min: 10000, max: 30000, crit: "critical" },
-      { key: "temperature", name_fa: "دمای پیش‌گرم", unit: "°C", min: 450, max: 750 },
-      { key: "vibration_x", name_fa: "ارتعاش", unit: "mm/s", min: 0.5, max: 7.5 },
+      { key: "air_flow", name_fa: "Air flow", unit: "Nm³/h", min: 10000, max: 30000, crit: "critical" },
+      { key: "temperature", name_fa: "Preheat temperature", unit: "°C", min: 450, max: 750 },
+      { key: "vibration_x", name_fa: "Vibration", unit: "mm/s", min: 0.5, max: 7.5 },
     ],
   },
   {
     id: "OIL-001",
-    name_fa: "پمپ و پیش‌گرم خوراک روغن",
+    name_fa: "Feed oil pump and preheater",
     type: "pump",
-    location: "ایستگاه خوراک",
+    location: "Feed station",
     line_id: "Line_1",
-    area: "تغذیه",
+    area: "Feed",
     sensors: [
-      { key: "oil_feed_rate", name_fa: "دبی روغن", unit: "kg/h", min: 1500, max: 4500, crit: "critical" },
-      { key: "temperature", name_fa: "دمای روغن", unit: "°C", min: 180, max: 280 },
-      { key: "pressure", name_fa: "فشار پمپ", unit: "kPa", min: 200, max: 800 },
+      { key: "oil_feed_rate", name_fa: "Oil flow", unit: "kg/h", min: 1500, max: 4500, crit: "critical" },
+      { key: "temperature", name_fa: "Oil temperature", unit: "°C", min: 180, max: 280 },
+      { key: "pressure", name_fa: "Pump pressure", unit: "kPa", min: 200, max: 800 },
     ],
   },
   {
     id: "GAS-001",
-    name_fa: "ایستگاه گاز طبیعی سوخت",
+    name_fa: "Fuel natural gas station",
     type: "gas_station",
-    location: "یوتیلیتی سوخت",
+    location: "Fuel utility",
     line_id: "UTIL",
-    area: "تغذیه",
+    area: "Feed",
     sensors: [
-      { key: "gas_flow", name_fa: "دبی گاز", unit: "Nm³/h", min: 300, max: 1500, crit: "critical" },
-      { key: "pressure", name_fa: "فشار گاز", unit: "kPa", min: 150, max: 400, crit: "critical" },
+      { key: "gas_flow", name_fa: "Gas flow", unit: "Nm³/h", min: 300, max: 1500, crit: "critical" },
+      { key: "pressure", name_fa: "Gas pressure", unit: "kPa", min: 150, max: 400, crit: "critical" },
     ],
   },
   {
     id: "QNZ-001",
-    name_fa: "سیستم کوئنچ راکتور",
+    name_fa: "Reactor quench system",
     type: "quench",
-    location: "سالن راکتور",
+    location: "Reactor hall",
     line_id: "Line_1",
-    area: "واکنش",
+    area: "Reaction",
     sensors: [
-      { key: "temperature", name_fa: "دمای پس از کوئنچ", unit: "°C", min: 700, max: 1100, crit: "critical" },
-      { key: "quench_water_flow", name_fa: "دبی آب کوئنچ", unit: "m³/h", min: 8, max: 35, crit: "critical" },
+      { key: "temperature", name_fa: "Temperature after quench", unit: "°C", min: 700, max: 1100, crit: "critical" },
+      { key: "quench_water_flow", name_fa: "Quench water flow", unit: "m³/h", min: 8, max: 35, crit: "critical" },
     ],
   },
   {
     id: "PMP-001",
-    name_fa: "پمپ آب کوئنچ",
+    name_fa: "Quench water pump",
     type: "pump",
-    location: "ایستگاه پمپ",
+    location: "Pump station",
     line_id: "UTIL",
-    area: "یوتیلیتی",
+    area: "Utility",
     sensors: [
-      { key: "pressure", name_fa: "فشار دیسشارژ", unit: "kPa", min: 250, max: 700 },
-      { key: "current_draw", name_fa: "جریان موتور", unit: "A", min: 25, max: 110 },
+      { key: "pressure", name_fa: "Discharge pressure", unit: "kPa", min: 250, max: 700 },
+      { key: "current_draw", name_fa: "Motor current", unit: "A", min: 25, max: 110 },
     ],
   },
   {
     id: "APH-001",
-    name_fa: "مبدل پیش‌گرم هوا",
+    name_fa: "Air preheater exchanger",
     type: "heat_exchanger",
-    location: "مسیر دود / هوا",
+    location: "Flue / air path",
     line_id: "Line_1",
-    area: "بازیابی حرارت",
+    area: "Heat recovery",
     sensors: [
-      { key: "temperature", name_fa: "دمای هوای خروجی", unit: "°C", min: 400, max: 780 },
-      { key: "pressure", name_fa: "افت فشار", unit: "kPa", min: 1, max: 12 },
+      { key: "temperature", name_fa: "Outlet air temperature", unit: "°C", min: 400, max: 780 },
+      { key: "pressure", name_fa: "Pressure drop", unit: "kPa", min: 1, max: 12 },
     ],
   },
   {
     id: "OPH-001",
-    name_fa: "مبدل پیش‌گرم روغن",
+    name_fa: "Oil preheater exchanger",
     type: "heat_exchanger",
-    location: "مسیر دود / روغن",
+    location: "Flue / oil path",
     line_id: "Line_1",
-    area: "بازیابی حرارت",
+    area: "Heat recovery",
     sensors: [
-      { key: "temperature", name_fa: "دمای روغن خروجی", unit: "°C", min: 160, max: 290 },
+      { key: "temperature", name_fa: "Outlet oil temperature", unit: "°C", min: 160, max: 290 },
     ],
   },
   {
     id: "CYC-001",
-    name_fa: "سیکلون جداسازی",
+    name_fa: "Separation cyclone",
     type: "cyclone",
-    location: "جداسازی",
+    location: "Separation",
     line_id: "Line_1",
-    area: "جداسازی",
+    area: "Separation",
     sensors: [
-      { key: "pressure", name_fa: "افت فشار", unit: "kPa", min: 0.5, max: 8 },
-      { key: "temperature", name_fa: "دمای گاز", unit: "°C", min: 250, max: 550 },
+      { key: "pressure", name_fa: "Pressure drop", unit: "kPa", min: 0.5, max: 8 },
+      { key: "temperature", name_fa: "Gas temperature", unit: "°C", min: 250, max: 550 },
     ],
   },
   {
     id: "BAG-001",
-    name_fa: "فیلتر کیسه‌ای",
+    name_fa: "Bag filter",
     type: "bag_filter",
-    location: "جداسازی",
+    location: "Separation",
     line_id: "Line_1",
-    area: "جداسازی",
+    area: "Separation",
     sensors: [
-      { key: "pressure", name_fa: "افت فشار فیلتر", unit: "kPa", min: 0.8, max: 6, crit: "critical" },
-      { key: "dust_outlet", name_fa: "غبار خروجی", unit: "mg/Nm³", min: 5, max: 50 },
+      { key: "pressure", name_fa: "Filter pressure drop", unit: "kPa", min: 0.8, max: 6, crit: "critical" },
+      { key: "dust_outlet", name_fa: "Outlet dust", unit: "mg/Nm³", min: 5, max: 50 },
     ],
   },
   {
     id: "FAN-001",
-    name_fa: "فن مکش دودکش",
+    name_fa: "Stack suction fan",
     type: "fan",
-    location: "دودکش",
+    location: "Stack",
     line_id: "Line_1",
-    area: "جداسازی",
+    area: "Separation",
     sensors: [
-      { key: "vibration_x", name_fa: "ارتعاش", unit: "mm/s", min: 0.5, max: 8, crit: "critical" },
-      { key: "current_draw", name_fa: "جریان موتور", unit: "A", min: 90, max: 280 },
+      { key: "vibration_x", name_fa: "Vibration", unit: "mm/s", min: 0.5, max: 8, crit: "critical" },
+      { key: "current_draw", name_fa: "Motor current", unit: "A", min: 90, max: 280 },
     ],
   },
   {
     id: "CLR-001",
-    name_fa: "کولر عمودی ۳۸ متری",
+    name_fa: "38-meter vertical cooler",
     type: "cooler",
-    location: "برج خنک‌کننده",
+    location: "Cooling tower",
     line_id: "Line_1",
-    area: "خنک‌کاری",
+    area: "Cooling",
     sensors: [
-      { key: "temperature", name_fa: "دمای خروجی", unit: "°C", min: 180, max: 280 },
-      { key: "coolant_temp", name_fa: "دمای آب", unit: "°C", min: 25, max: 45 },
+      { key: "temperature", name_fa: "Outlet temperature", unit: "°C", min: 180, max: 280 },
+      { key: "coolant_temp", name_fa: "Water temperature", unit: "°C", min: 25, max: 45 },
     ],
   },
   {
     id: "PNE-001",
-    name_fa: "انتقال پنوماتیک دوده",
+    name_fa: "Pneumatic carbon black conveying",
     type: "conveyor",
-    location: "مسیر انتقال",
+    location: "Conveying path",
     line_id: "Line_1",
-    area: "انتقال",
+    area: "Transfer",
     sensors: [
-      { key: "pressure", name_fa: "فشار خط", unit: "kPa", min: 20, max: 80 },
-      { key: "air_flow", name_fa: "دبی هوا", unit: "Nm³/h", min: 500, max: 2500 },
+      { key: "pressure", name_fa: "Line pressure", unit: "kPa", min: 20, max: 80 },
+      { key: "air_flow", name_fa: "Air flow", unit: "Nm³/h", min: 500, max: 2500 },
     ],
   },
   {
     id: "GRN-001",
-    name_fa: "گرانولاتور مرطوب",
+    name_fa: "Wet pelletizer",
     type: "granulator",
-    location: "واحد گرانول",
+    location: "Pelletizing unit",
     line_id: "Line_1",
-    area: "محصول",
+    area: "Product",
     sensors: [
-      { key: "current_draw", name_fa: "جریان موتور", unit: "A", min: 40, max: 160 },
-      { key: "vibration_x", name_fa: "ارتعاش", unit: "mm/s", min: 0.5, max: 9 },
+      { key: "current_draw", name_fa: "Motor current", unit: "A", min: 40, max: 160 },
+      { key: "vibration_x", name_fa: "Vibration", unit: "mm/s", min: 0.5, max: 9 },
     ],
   },
   {
     id: "DRY-001",
-    name_fa: "خشک‌کن دوار",
+    name_fa: "Rotary dryer",
     type: "dryer",
-    location: "واحد خشک‌کن",
+    location: "Dryer unit",
     line_id: "Line_1",
-    area: "محصول",
+    area: "Product",
     sensors: [
-      { key: "temperature", name_fa: "دمای گاز", unit: "°C", min: 180, max: 320, crit: "critical" },
-      { key: "moisture", name_fa: "رطوبت محصول", unit: "%", min: 0.2, max: 1.2, crit: "critical" },
+      { key: "temperature", name_fa: "Gas temperature", unit: "°C", min: 180, max: 320, crit: "critical" },
+      { key: "moisture", name_fa: "Product moisture", unit: "%", min: 0.2, max: 1.2, crit: "critical" },
     ],
   },
   {
     id: "SCR-001",
-    name_fa: "سرند محصول",
+    name_fa: "Product screen",
     type: "screen",
-    location: "واحد بسته‌بندی",
+    location: "Packaging unit",
     line_id: "Line_1",
-    area: "محصول",
+    area: "Product",
     sensors: [
-      { key: "vibration_x", name_fa: "ارتعاش سرند", unit: "mm/s", min: 2, max: 18 },
-      { key: "throughput", name_fa: "نرخ عبور", unit: "t/h", min: 2, max: 12 },
+      { key: "vibration_x", name_fa: "Screen vibration", unit: "mm/s", min: 2, max: 18 },
+      { key: "throughput", name_fa: "Throughput", unit: "t/h", min: 2, max: 12 },
     ],
   },
   {
     id: "PKG-001",
-    name_fa: "بسته‌بندی و توزین",
+    name_fa: "Packaging and weighing",
     type: "packaging",
-    location: "سالن انبار",
+    location: "Warehouse hall",
     line_id: "Line_1",
-    area: "محصول",
+    area: "Product",
     sensors: [
-      { key: "throughput", name_fa: "نرخ بسته", unit: "bag/h", min: 40, max: 180 },
-      { key: "weight_error", name_fa: "خطای توزین", unit: "%", min: -1.5, max: 1.5, crit: "critical" },
+      { key: "throughput", name_fa: "Bag rate", unit: "bag/h", min: 40, max: 180 },
+      { key: "weight_error", name_fa: "Weighing error", unit: "%", min: -1.5, max: 1.5, crit: "critical" },
     ],
   },
   {
     id: "CMP-001",
-    name_fa: "کمپرسور هوای ابزار دقیق",
+    name_fa: "Instrument air compressor",
     type: "compressor",
-    location: "یوتیلیتی",
+    location: "Utility",
     line_id: "UTIL",
-    area: "یوتیلیتی",
+    area: "Utility",
     sensors: [
-      { key: "pressure", name_fa: "فشار هوا", unit: "kPa", min: 550, max: 850, crit: "critical" },
-      { key: "oil_pressure", name_fa: "فشار روغن", unit: "bar", min: 2, max: 5 },
+      { key: "pressure", name_fa: "Air pressure", unit: "kPa", min: 550, max: 850, crit: "critical" },
+      { key: "oil_pressure", name_fa: "Oil pressure", unit: "bar", min: 2, max: 5 },
     ],
   },
   {
     id: "GEN-001",
-    name_fa: "ژنراتور اضطراری",
+    name_fa: "Emergency generator",
     type: "generator",
-    location: "نیروگاه داخلی",
+    location: "Internal power plant",
     line_id: "UTIL",
-    area: "یوتیلیتی",
+    area: "Utility",
     sensors: [
-      { key: "current_draw", name_fa: "جریان خروجی", unit: "A", min: 50, max: 400, crit: "critical" },
-      { key: "oil_pressure", name_fa: "فشار روغن", unit: "bar", min: 2.5, max: 5.5, crit: "critical" },
-      { key: "coolant_temp", name_fa: "دمای آب", unit: "°C", min: 70, max: 95 },
+      { key: "current_draw", name_fa: "Output current", unit: "A", min: 50, max: 400, crit: "critical" },
+      { key: "oil_pressure", name_fa: "Oil pressure", unit: "bar", min: 2.5, max: 5.5, crit: "critical" },
+      { key: "coolant_temp", name_fa: "Water temperature", unit: "°C", min: 70, max: 95 },
     ],
   },
 ];
@@ -427,29 +427,29 @@ const SPECS: Spec[] = [
 const LOCAL_LOGGERS: DataLogger[] = [
   {
     id: "SCADA-01",
-    name_fa: "SCADA مرکزی خط تولید",
+    name_fa: "Central production-line SCADA",
     kind: "scada",
     protocol: "OPC UA / MQTT",
     vendor: "Wonderware / Ignition-class",
     host: "10.10.1.10",
     poll_interval_s: 2,
-    areas: ["واکنش", "جداسازی", "بازیابی حرارت"],
+    areas: ["Reaction", "Separation", "Heat recovery"],
     status: "online",
   },
   {
     id: "PLC-S7-01",
-    name_fa: "PLC زیمنس S7 — خط ۱",
+    name_fa: "Siemens S7 PLC — Line 1",
     kind: "plc",
     protocol: "S7 / Modbus TCP",
     vendor: "Siemens S7-1500",
     host: "10.10.2.21",
     poll_interval_s: 1,
-    areas: ["واکنش", "تغذیه", "خنک‌کاری"],
+    areas: ["Reaction", "Feed", "Cooling"],
     status: "online",
   },
   {
     id: "PLC-S7-02",
-    name_fa: "PLC زیمنس S7 — خط ۲",
+    name_fa: "Siemens S7 PLC — Line 2",
     kind: "plc",
     protocol: "S7 / Modbus TCP",
     host: "10.10.2.22",
@@ -457,7 +457,7 @@ const LOCAL_LOGGERS: DataLogger[] = [
   },
   {
     id: "PLC-UTIL",
-    name_fa: "PLC یوتیلیتی و کمپرسور",
+    name_fa: "Utility and compressor PLC",
     kind: "plc",
     protocol: "Modbus TCP",
     host: "10.10.3.15",
@@ -465,7 +465,7 @@ const LOCAL_LOGGERS: DataLogger[] = [
   },
   {
     id: "DL-EDGE-01",
-    name_fa: "Data Logger لبه OT (MQTT)",
+    name_fa: "Edge OT Data Logger (MQTT)",
     kind: "data_logger",
     protocol: "MQTT / REST",
     host: "10.10.4.50",
@@ -473,7 +473,7 @@ const LOCAL_LOGGERS: DataLogger[] = [
   },
   {
     id: "DL-VIB-01",
-    name_fa: "Data Logger ارتعاش و وضعیت ماشین",
+    name_fa: "Vibration and machine condition Data Logger",
     kind: "data_logger",
     protocol: "Modbus RTU / MQTT",
     host: "10.10.4.61",
@@ -482,14 +482,14 @@ const LOCAL_LOGGERS: DataLogger[] = [
 ];
 
 function loggerForArea(area: string, lineId: string): DataLogger {
-  if (area === "واکنش" && lineId === "Line_2") {
+  if (area === "Reaction" && lineId === "Line_2") {
     return LOCAL_LOGGERS.find((d) => d.id === "PLC-S7-02") ?? LOCAL_LOGGERS[1];
   }
-  if (area === "جداسازی" || area === "بازیابی حرارت") {
+  if (area === "Separation" || area === "Heat recovery") {
     return LOCAL_LOGGERS.find((d) => d.id === "SCADA-01") ?? LOCAL_LOGGERS[0];
   }
-  if (area === "یوتیلیتی") return LOCAL_LOGGERS.find((d) => d.id === "PLC-UTIL") ?? LOCAL_LOGGERS[3];
-  if (area === "محصول" || area === "انتقال") {
+  if (area === "Utility") return LOCAL_LOGGERS.find((d) => d.id === "PLC-UTIL") ?? LOCAL_LOGGERS[3];
+  if (area === "Product" || area === "Transfer") {
     return LOCAL_LOGGERS.find((d) => d.id === "DL-EDGE-01") ?? LOCAL_LOGGERS[4];
   }
   return LOCAL_LOGGERS.find((d) => d.id === "PLC-S7-01") ?? LOCAL_LOGGERS[1];
@@ -557,24 +557,24 @@ export function buildLocalAdvice(alert: ProcessAlert): ProcessAlert {
   const primary: ProcessRecommendation = {
     action_id: high ? "nudge_setpoint_down" : "nudge_setpoint_up",
     action_fa: high
-      ? "کاهش تدریجی ست‌پوینت مرتبط تا بازگشت به رنج"
-      : "افزایش تدریجی ست‌پوینت مرتبط تا حداقل عملیاتی",
+      ? "Gradually reduce the related setpoint until it returns to range"
+      : "Gradually increase the related setpoint to the operating minimum",
     mode: alert.severity === "critical" ? "auto_eligible" : "manual_only",
     auto_eligible: alert.severity === "critical",
     rank: 1,
     confidence: 0.88,
-    expected_effect_fa: "بازگشت مقدار به باند عملیاتی",
-    risk_fa: "اثر جانبی کوتاه‌مدت روی کیفیت",
+    expected_effect_fa: "The value returns to the operating band",
+    risk_fa: "Short-term side effect on quality",
   };
   const manual: ProcessRecommendation = {
     action_id: "operator_verify",
-    action_fa: "تأیید میدانی توسط اپراتور و ثبت در لاگ شیفت",
+    action_fa: "Field confirmation by the operator and logging in the shift log",
     mode: "manual_only",
     auto_eligible: false,
     rank: 2,
     confidence: 0.8,
-    expected_effect_fa: "اعتبارسنجی هشدار",
-    risk_fa: "تأخیر واکنش",
+    expected_effect_fa: "Alert validation",
+    risk_fa: "Delayed response",
   };
   return {
     ...alert,
@@ -608,18 +608,18 @@ export function buildLocalEquipmentBoard(): EquipmentBoard {
           min_op: s.min_op,
           max_op: s.max_op,
           unit: s.unit,
-          message: `${u.name_fa}: ${s.name_fa} خارج از محدوده (${s.value} ${s.unit}; مجاز ${s.min_op}–${s.max_op})`,
+          message: `${u.name_fa}: ${s.name_fa} outside the range (${s.value} ${s.unit}; allowed ${s.min_op}–${s.max_op})`,
         }),
       );
     }
   }
   const rul_components = buildLocalRulComponentsBoard();
   return {
-    source: "کاتالوگ آفلاین خط تولید + PLC/SCADA/Data Logger",
+    source: "Offline production line catalog + PLC/SCADA/Data Logger",
     equipment,
     data_loggers: LOCAL_LOGGERS,
     process_alerts,
-    autopilot: { enabled: false, message_fa: "آفلاین — Auto Pilot در سرویس انرژی فعال می‌شود" },
+    autopilot: { enabled: false, message_fa: "Offline — Auto Pilot is enabled in the energy service" },
     recent_actions: [],
     rul_components,
     summary: {
@@ -639,10 +639,10 @@ export function buildLocalEquipmentBoard(): EquipmentBoard {
 }
 
 export function opStatusLabel(status: string): string {
-  if (status === "normal" || status === "ok") return "در محدوده";
-  if (status === "warning") return "هشدار";
-  if (status === "critical") return "بحرانی";
-  if (status === "nodata") return "بدون داده";
+  if (status === "normal" || status === "ok") return "In range";
+  if (status === "warning") return "Warning";
+  if (status === "critical") return "Critical";
+  if (status === "nodata") return "No data";
   return status;
 }
 
@@ -700,10 +700,10 @@ export function flattenEquipmentSensors(board: EquipmentBoard): FlatSensorRow[] 
 }
 
 export function trafficLabel(status: string): string {
-  if (status === "ok") return "سبز — در محدوده";
-  if (status === "warning") return "زرد — نزدیک حد / هشدار";
-  if (status === "critical") return "قرمز — خارج از محدوده";
-  return "بدون داده";
+  if (status === "ok") return "Green — in range";
+  if (status === "warning") return "Yellow — near the limit / warning";
+  if (status === "critical") return "Red — out of range";
+  return "No data";
 }
 
 export function loggerKindLabel(kind?: string): string {

@@ -1,9 +1,9 @@
 """Market-shock production scenarios for grade mix balancing.
 
 Goals (Persian ops language):
-  - جلوگیری از انبارداری (no excess finished-goods inventory)
-  - جلوگیری از صف خرید مواد (no feedstock purchase backlog)
-  - جلوگیری از صف فروش / سفارش مشتری (clear sales purchase-queue)
+  - preventing warehousing (no excess finished-goods inventory)
+  - preventing a material purchase backlog (no feedstock purchase backlog)
+  - preventing a sales backlog / customer order (clear sales purchase-queue)
 
 Inputs: USD/IRR, gold (IRR/g), crude oil (USD), feedstock basket shock.
 """
@@ -102,8 +102,8 @@ def scenario_presets() -> list[dict[str, Any]]:
     return [
         {
             "id": "baseline",
-            "name_fa": "پایه (بازار جاری)",
-            "description_fa": "نرخ ارز، طلا، نفت و خوراک در سطح مرجع — تولید متوازن برای صف فروش و کنترل موجودی.",
+            "name_fa": "Baseline (current market)",
+            "description_fa": "Exchange rate, gold, oil and feedstock at the reference level — balanced production for the sales queue and inventory control.",
             "usd_irr_delta_pct": 0,
             "gold_delta_pct": 0,
             "oil_delta_pct": 0,
@@ -111,8 +111,8 @@ def scenario_presets() -> list[dict[str, Any]]:
         },
         {
             "id": "usd_shock",
-            "name_fa": "شوک دلار (ارز↑)",
-            "description_fa": "ضعف ریال / دلار↑ → اولویت صادرات و گریدهای با بتای ارزی بالا؛ کاهش انبار کم‌مارژین.",
+            "name_fa": "Dollar shock (FX↑)",
+            "description_fa": "Rial weakness / dollar↑ → priority to exports and grades with high FX beta; reduction of low-margin stock.",
             "usd_irr_delta_pct": 18,
             "gold_delta_pct": 8,
             "oil_delta_pct": 4,
@@ -120,8 +120,8 @@ def scenario_presets() -> list[dict[str, Any]]:
         },
         {
             "id": "gold_oil_up",
-            "name_fa": "طلا و نفت صعودی",
-            "description_fa": "طلا و نفت↑ → فشار تورم خوراک؛ تولید سبک‌تر، اولویت صف فروش قطعی، خرید مواد محتاطانه.",
+            "name_fa": "Gold and oil rally",
+            "description_fa": "Gold and oil↑ → feedstock inflation pressure; lighter production, priority for the firm sales queue, cautious material purchasing.",
             "usd_irr_delta_pct": 5,
             "gold_delta_pct": 15,
             "oil_delta_pct": 20,
@@ -129,8 +129,8 @@ def scenario_presets() -> list[dict[str, Any]]:
         },
         {
             "id": "feedstock_spike",
-            "name_fa": "جهش قیمت مواد خام",
-            "description_fa": "CBFS/نفتا جهش → توقف تولید انباری، تمرکز روی گرید پرمارژین و تخلیه موجودی نرم.",
+            "name_fa": "Raw material price spike",
+            "description_fa": "CBFS/naphtha spike → stop stock-building production, focus on high-margin grades and soft inventory drawdown.",
             "usd_irr_delta_pct": 3,
             "gold_delta_pct": 5,
             "oil_delta_pct": 12,
@@ -138,8 +138,8 @@ def scenario_presets() -> list[dict[str, Any]]:
         },
         {
             "id": "soft_landing",
-            "name_fa": "فرود نرم (کالا↓)",
-            "description_fa": "دلار و خوراک آرام‌تر → فرصت پیش‌خرید مواد بدون ایجاد صف خرید، تولید برای پر کردن صف فروش.",
+            "name_fa": "Soft landing (commodities↓)",
+            "description_fa": "Calmer dollar and feedstock → opportunity to pre-buy materials without creating a purchase backlog, production to fill the sales queue.",
             "usd_irr_delta_pct": -6,
             "gold_delta_pct": -4,
             "oil_delta_pct": -10,
@@ -246,20 +246,20 @@ def _recommend_action(
     feed_idx = macros["indices"]["feed_idx"]
 
     if queue_kg > 5000 and inventory_kg < queue_kg * 0.5:
-        return "produce_for_sales_queue", "اولویت صف فروش — موجودی ناکافی برای سفارش‌های در صف"
+        return "produce_for_sales_queue", "Sales queue priority — insufficient inventory for queued orders"
     if cover_days > 45 and queue_kg < 3000:
-        return "drawdown_inventory", "انبار بالا — تولید متوقف/کاهش برای جلوگیری از انبارداری"
+        return "drawdown_inventory", "High inventory — production halted/reduced to prevent warehousing"
     if feed_idx > 1.15 and margin < 0.09:
-        return "hold_low_margin", "خوراک گران و حاشیه پایین — تولید انباری ممنوع"
+        return "hold_low_margin", "Expensive feedstock and low margin — stock-building production prohibited"
     if cost_p > 1.12 and cover_days > 25:
-        return "produce_queue_only", "فشار هزینه — فقط به اندازه صف فروش قطعی تولید کنید"
+        return "produce_queue_only", "Cost pressure — produce only the amount of the firm sales queue"
     if feed_idx < 0.92 and queue_kg > 0:
-        return "produce_and_prebuy_feed", "فرود نرم خوراک — تولید برای صف + پیش‌خرید مواد بدون صف خرید"
+        return "produce_and_prebuy_feed", "Feedstock soft landing — produce for the queue + pre-buy materials without a purchase backlog"
     if margin >= 0.12 and macros["indices"]["fx_tailwind"] > 1.08:
-        return "boost_export_grade", "دلار↑ و حاشیه خوب — افزایش سهم صادراتی این گرید"
+        return "boost_export_grade", "Dollar↑ and good margin — increase the export share of this grade"
     if produce_kg > demand_kg * 1.15:
-        return "trim_to_demand", "کاهش برنامه تا سطح تقاضا برای جلوگیری از انبار"
-    return "balanced_produce", "تولید متوازن با پوشش صف فروش و کنترل موجودی"
+        return "trim_to_demand", "Reduce the plan to the demand level to prevent inventory build-up"
+    return "balanced_produce", "Balanced production with sales queue coverage and inventory control"
 
 
 def build_grade_plan_for_macros(
@@ -367,12 +367,12 @@ def _scenario_balance_summary(grades: list[dict[str, Any]], macros: dict[str, An
     total_excess = sum(r["excess_inventory_kg"] for r in grades)
     total_feed = sum(r["feedstock_need_kg"] for r in grades)
     uncovered_queue = sum(max(0.0, r["sales_queue_kg"] - r["inventory_on_hand_kg"] - r["planned_produce_kg"] * 0.3) for r in grades)
-    warehouse_risk = "بالا" if total_excess > 250_000 else ("متوسط" if total_excess > 100_000 else "کم")
-    sales_queue_risk = "بالا" if uncovered_queue > 40_000 else ("متوسط" if uncovered_queue > 10_000 else "کم")
+    warehouse_risk = "High" if total_excess > 250_000 else ("Medium" if total_excess > 100_000 else "Low")
+    sales_queue_risk = "High" if uncovered_queue > 40_000 else ("Medium" if uncovered_queue > 10_000 else "Low")
     purchase_queue_risk = (
-        "بالا"
+        "High"
         if macros["indices"]["feed_idx"] > 1.2 and total_feed > 1_500_000
-        else ("متوسط" if macros["indices"]["feed_idx"] > 1.08 else "کم")
+        else ("Medium" if macros["indices"]["feed_idx"] > 1.08 else "Low")
     )
     # Proxy realization price (IRR/kg) and feedstock basket (IRR/kg)
     avg_sell_irr = 185_000.0
@@ -401,14 +401,14 @@ def _scenario_balance_summary(grades: list[dict[str, Any]], macros: dict[str, An
         "estimated_profit_irr": round(estimated_profit_irr, 0),
         "balance_score": round(
             100
-            - (10 if warehouse_risk == "بالا" else 5 if warehouse_risk == "متوسط" else 0)
-            - (12 if sales_queue_risk == "بالا" else 6 if sales_queue_risk == "متوسط" else 0)
-            - (10 if purchase_queue_risk == "بالا" else 5 if purchase_queue_risk == "متوسط" else 0),
+            - (10 if warehouse_risk == "High" else 5 if warehouse_risk == "Medium" else 0)
+            - (12 if sales_queue_risk == "High" else 6 if sales_queue_risk == "Medium" else 0)
+            - (10 if purchase_queue_risk == "High" else 5 if purchase_queue_risk == "Medium" else 0),
             0,
         ),
         "policy_fa": (
-            "اولویت ۱: پوشش صف فروش مشتری · اولویت ۲: عدم انباشت انبار · "
-            "اولویت ۳: خرید مواد فقط برای برنامه تولید (بدون صف خرید اضافی)"
+            "Priority 1: customer sales queue coverage · Priority 2: no inventory build-up · "
+            "Priority 3: material purchasing only for the production plan (no extra purchase backlog)"
         ),
     }
 
@@ -498,15 +498,15 @@ def build_market_scenario_board(
                     "advice": r["feedstock_buy_advice"],
                     "feedstock_need_kg": r["feedstock_need_kg"],
                     "note_fa": {
-                        "prebuy_window": "پنجره پیش‌خرید — قیمت خوراک مساعد؛ بدون ایجاد صف خرید اضافی",
-                        "delay_noncritical": "تأخیر خرید غیرضروری — جهش مواد خام",
-                        "buy_for_queue": "خرید فقط برای پوشش صف فروش",
+                        "prebuy_window": "Pre-buy window — favorable feedstock price; without creating an extra purchase backlog",
+                        "delay_noncritical": "Delay non-essential purchases — raw material spike",
+                        "buy_for_queue": "Buy only to cover the sales queue",
                     }.get(r["feedstock_buy_advice"], ""),
                 }
             )
 
     return {
-        "source": "نوسان بازار جهانی (دلار · طلا · نفت · مواد خام) → سناریوی تولید گرید",
+        "source": "Global market volatility (dollar · gold · oil · raw materials) → grade production scenario",
         "plan_date": str(date.today()),
         "horizon_days": horizon_days,
         "selected_scenario": {
@@ -522,8 +522,8 @@ def build_market_scenario_board(
         "feedstock_actions": buy_actions[:12],
         "sales_pipeline_summary": pipeline.get("summary"),
         "objectives_fa": [
-            "جلوگیری از انبارداری محصول نهایی",
-            "جلوگیری از صف خرید مواد خام",
-            "جلوگیری از صف فروش / سفارش مشتری پاسخ‌نداده",
+            "Preventing finished-product warehousing",
+            "Preventing a raw material purchase backlog",
+            "Preventing unanswered sales backlog / customer orders",
         ],
     }

@@ -36,7 +36,7 @@ router = APIRouter(prefix="/api/v1/supply", tags=["supply"])
 
 
 class PurchaseAdviceRequest(BaseModel):
-    material: str = "قطران (فورفورال اکسترکت)"
+    material: str = "Coal tar (furfural extract)"
     horizon_days: int = Field(default=90, ge=7, le=180)
     crude_oil_price_usd: float = 78.0
     usd_irr_rate: float = 245000.0
@@ -402,7 +402,7 @@ async def procurement_board(db: AsyncSession = Depends(get_db)) -> dict:
 
         return {
             "source": "live supply.price_history + procurement catalog",
-            "updated_label": "قیمت‌های به‌روز بازار و پیشنهاد تأمین‌کنندگان",
+            "updated_label": "Updated market prices and supplier suggestions",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "materials": materials_out,
             "suppliers": enriched_suppliers,

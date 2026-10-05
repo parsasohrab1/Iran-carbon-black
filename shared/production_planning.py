@@ -1,4 +1,4 @@
-"""Demand-driven production planning for Iran Carbon Black (شکربن).
+"""Demand-driven production planning for Iran Carbon Black (Shekarbon).
 
 Combines:
   - ML / historical demand run-rate
@@ -272,7 +272,7 @@ def build_production_board(
         by_line[s["production_line"]] = by_line.get(s["production_line"], 0.0) + float(s["quantity_kg"])
 
     return {
-        "source": "تقاضا (پایه + صف فروش + صادرات) → برنامه تولید ظرفیت‌محور",
+        "source": "Demand (base + sales queue + exports) → capacity-based production plan",
         "horizon_days": horizon_days,
         "schedule_days": schedule_days,
         "plan_date": str(date.today()),

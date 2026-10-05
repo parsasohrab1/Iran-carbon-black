@@ -1,34 +1,34 @@
 # Iran-carbon-black
-## پروپوزال جامع پیاده‌سازی هوش مصنوعی در شرکت کربن ایران
+## Comprehensive Proposal for Implementing Artificial Intelligence at Iran Carbon Company
 
 ---
 
-## راه‌اندازی زیرساخت (Phase 1)
+## Infrastructure setup (Phase 1)
 
-پلتفرم On-Premise مبتنی بر میکروسرویس‌ها مطابق SRS حوزه ۶.
+An on-premise microservices-based platform per SRS domain 6.
 
-### پیش‌نیاز
+### Prerequisites
 - Docker Desktop / Docker Compose
-- Python 3.11+ (اختیاری، برای اسکریپت seed)
+- Python 3.11+ (optional, for the seed script)
 
-### شروع سریع
+### Quick start
 
 ```powershell
 .\scripts\bootstrap.ps1
 ```
 
-یا:
+Or:
 
 ```powershell
 Copy-Item .env.example .env
 docker compose up -d --build
 ```
 
-### نقاط دسترسی
+### Access points
 
-| سرویس | آدرس |
+| Service | Address |
 |:---|:---|
-| **داشبورد آنلاین** | http://localhost:8080 |
+| **Online dashboard** | http://localhost:8080 |
 | API Gateway | http://localhost:8080/api/... |
 | Auth | http://localhost:8001/docs |
 | Ingestion | http://localhost:8002/docs |
@@ -47,62 +47,62 @@ docker compose up -d --build
 | Prometheus | http://localhost:9090 |
 | MQTT | localhost:1883 |
 
-### داشبورد وب (SPA)
+### Web dashboard (SPA)
 
-داشبورد فارسی RTL در مسیر ریشه گیت‌وی سرو می‌شود و داده‌های اجرایی را از APIهای فاز ۱–۵ می‌گیرد.
+The Persian RTL dashboard is served at the gateway root and retrieves operational data from the Phase 1–5 APIs.
 
 ```powershell
-# توسعه محلی (Vite روی :5173 با پروکسی به :8080)
+# Local development (Vite on :5173 with a proxy to :8080)
 cd web
 npm install
 npm run dev
 
-# یا فقط بیلد ایمیج داشبورد داخل استک
+# or only build the dashboard image inside the stack
 docker compose up -d --build dashboard gateway
 ```
 
-تب‌ها: نمای مدیریتی · انرژی · کیفیت · تقاضا/تولید · فروش/مالی · بلوغ/MLOps
-پورتال هر ۶۰ ثانیه به‌صورت خودکار تازه می‌شود.
+Tabs: Executive view · Energy · Quality · Demand/Production · Sales/Finance · Maturity/MLOps
+The portal refreshes automatically every 60 seconds.
 
-کاربر پیش‌فرض: `admin` / `Admin@ChangeMe1` — قبل از محیط واقعی رمزها را در `.env` عوض کنید.
+Default user: `admin` / `Admin@ChangeMe1` — change the passwords in `.env` before a real environment.
 
-### اجرای آفلاین داشبورد در VS Code
+### Running the dashboard offline in VS Code
 
-راهنمای کامل: [docs/OFFLINE_DASHBOARD.fa.md](docs/OFFLINE_DASHBOARD.fa.md)
+Full guide: [docs/OFFLINE_DASHBOARD.fa.md](docs/OFFLINE_DASHBOARD.fa.md)
 
-**ذخیره و اجرای بدون اینترنت:**
+**Saving and running without internet:**
 
 ```powershell
-.\scripts\offline-save.ps1    # یک‌بار: بیلد SPA → offline/dashboard
-.\scripts\offline-run.ps1     # هر بار آفلاین: Docker محلی + UI روی :5173
+.\scripts\offline-save.ps1    # once: build the SPA → offline/dashboard
+.\scripts\offline-run.ps1     # every offline run: local Docker + UI on :5173
 ```
 
-توسعه با Hot Reload:
+Development with Hot Reload:
 
 ```powershell
 .\scripts\dev-dashboard.ps1
 # → http://127.0.0.1:5173
 ```
 
-در VS Code: Task **ICB: Offline run** یا **ICB: Live dashboard**.
+In VS Code: Task **ICB: Offline run** or **ICB: Live dashboard**.
 
-داده سنتتیک نمونه:
+Sample synthetic data:
 
 ```powershell
 python scripts/seed_synthetic.py
 ```
 
-## فاز ۵ — بلوغ محصول، MLOps و مزیت رقابتی
+## Phase 5 — Product maturity, MLOps and competitive advantage
 
-### قابلیت‌ها
-- رجیستری مدل + بازآموزی (هفتگی در prod / ساعتی در dev) و انتشار به MinIO
-- ارتقای نسخه مدل به production (`/models/{domain}/{version}/promote`)
-- بهینه‌سازی موجودی و کاهش موجودی اضافی
-- سبد گریدهای پرمارژین / specialty
-- ردیابی منافع تا هدف سالانه **۲۰۰ میلیارد ریال** و payback حدود ۲۴ ماه
-- داشبورد Grafana: Phase 5 — Maturity, MLOps & ROI
+### Capabilities
+- Model registry + retraining (weekly in prod / hourly in dev) and publication to MinIO
+- Promoting a model version to production (`/models/{domain}/{version}/promote`)
+- Inventory optimization and reducing excess inventory
+- High-margin / specialty grade portfolio
+- Benefit tracking toward the annual target of **200 billion rials** and a payback of about 24 months
+- Grafana dashboard: Phase 5 — Maturity, MLOps & ROI
 
-### APIهای کلیدی
+### Key APIs
 
 ```http
 GET  /api/v1/maturity/models
@@ -123,18 +123,18 @@ Maturity docs: http://localhost:8012/docs
 
 ---
 
-## فاز ۴ — استقرار Production، امنیت، پشتیبان و آموزش
+## Phase 4 — Production deployment, security, backup and training
 
-### قابلیت‌ها
-- سخت‌سازی Auth: قفل حساب، سیاست رمز، اجبار 2FA در production، رویدادهای امنیتی
-- Rate limit + Security headers + مخفی‌سازی `/docs` در prod
-- منطقه‌بندی OT / IT / DMZ (`GET /api/v1/ops/zones`)
-- پشتیبان/بازیابی با هدف RPO≤۱h و RTO≤۲h (`scripts/backup.ps1`, `scripts/restore.ps1`)
-- سرویس آموزش و مدیریت تغییر برای رول‌اوت ۳۵۰+ نفر
-- مانیتورینگ SLA زنده + هشدار Prometheus
-- overlay تولید: `docker-compose.prod.yml`
+### Capabilities
+- Auth hardening: account lockout, password policy, enforced 2FA in production, security events
+- Rate limit + Security headers + hiding `/docs` in prod
+- OT / IT / DMZ zoning (`GET /api/v1/ops/zones`)
+- Backup/restore with a target of RPO≤1h and RTO≤2h (`scripts/backup.ps1`, `scripts/restore.ps1`)
+- Training and change management service for rolling out to 350+ people
+- Live SLA monitoring + Prometheus alert
+- Production overlay: `docker-compose.prod.yml`
 
-### APIهای کلیدی
+### Key APIs
 
 ```http
 POST /api/v1/auth/login
@@ -162,17 +162,17 @@ Grafana: **Phase 4 — Security, SLA & Training**
 
 ---
 
-## فاز ۳ — فروش، مالی و یکپارچه‌سازی ERP
+## Phase 3 — Sales, finance and ERP integration
 
-### قابلیت‌ها
-- پیش‌بینی فروش و قیمت‌گذاری `sales-gbr-v1` (هدف ≥ ۸۵٪)
-- CRM سبک مشتریان کلیدی + مشتریان در معرض ریزش
-- پیش‌بینی جریان نقدی `finance-gbr-v1` (هدف ≥ ۸۰٪)
-- تحلیل نسبت‌های مالی و داشبورد هیئت‌مدیره (`/finance/dashboard`)
-- درگاه یکپارچه‌سازی ERP روی `/api/v1/erp/*`
-- داشبورد Grafana: Phase 3 — Sales, Finance & ERP
+### Capabilities
+- Sales forecasting and pricing `sales-gbr-v1` (target ≥ 85%)
+- Lightweight CRM of key customers + customers at risk of churn
+- Cash flow forecasting `finance-gbr-v1` (target ≥ 80%)
+- Financial ratio analysis and board dashboard (`/finance/dashboard`)
+- ERP integration gateway on `/api/v1/erp/*`
+- Grafana dashboard: Phase 3 — Sales, Finance & ERP
 
-### APIهای کلیدی
+### Key APIs
 
 ```http
 POST /api/v1/sales/forecast
@@ -199,18 +199,18 @@ Integration docs: http://localhost:8009/docs
 
 ---
 
-## فاز ۲ — کیفیت، تقاضا و زنجیره تامین
+## Phase 2 — Quality, demand and supply chain
 
-### قابلیت‌ها
-- مدل ناهنجاری کیفیت `quality-anomaly-rf-v1` (هدف ≥ ۹۵٪)
-- بهینه‌سازی پارامتر فرآیند کوره/راکتور (`/process/optimize`)
-- پیش‌بینی تقاضا ۱۲ گرید با افق ۱/۳/۶ ماه (`demand-gbr-v1`)
-- برنامه‌ریزی تولید + توصیه‌گر گرید
-- پیش‌بینی قیمت مواد اولیه و پیشنهاد زمان خرید (`supply-price-gbr-v1`)
-- MQTT کیفیت: `icb/quality/+/process`
-- داشبورد Grafana: Phase 2 — Quality, Demand & Supply
+### Capabilities
+- Quality anomaly model `quality-anomaly-rf-v1` (target ≥ 95%)
+- Furnace/reactor process parameter optimization (`/process/optimize`)
+- Demand forecasting of 12 grades with 1/3/6-month horizons (`demand-gbr-v1`)
+- Production planning + grade recommender
+- Raw material price forecasting and purchase timing suggestion (`supply-price-gbr-v1`)
+- Quality MQTT: `icb/quality/+/process`
+- Grafana dashboard: Phase 2 — Quality, Demand & Supply
 
-### APIهای کلیدی
+### Key APIs
 
 ```http
 POST /api/v1/quality/anomaly/check
@@ -233,16 +233,16 @@ python scripts\phase2_smoke.py
 
 ---
 
-## فاز ۱ — پایلوت انرژی و نگهداری پیش‌بینی‌کننده
+## Phase 1 — Energy and predictive maintenance pilot
 
-### قابلیت‌ها
-- MQTT worker روی Ingestion (`icb/energy/+/sensors` و `.../consumption`)
-- شبیه‌ساز OT لبه (`edge-simulator`) برای تولید داده زنده پایلوت
-- مدل RUL واقعی (`rul-gbr-v1`) با آستانه هشدار ۳ روز (PM-02 / PM-03)
-- تصمیم برق شهری در برابر ژنراتور بر اساس تعرفه پیک (PM-04)
-- داشبورد Grafana: Phase 1 — Energy & Predictive Maintenance
+### Capabilities
+- MQTT worker on Ingestion (`icb/energy/+/sensors` and `.../consumption`)
+- Edge OT simulator (`edge-simulator`) for generating live pilot data
+- Real RUL model (`rul-gbr-v1`) with a 3-day alert threshold (PM-02 / PM-03)
+- Decision between grid power and generator based on peak tariff (PM-04)
+- Grafana dashboard: Phase 1 — Energy & Predictive Maintenance
 
-### APIهای کلیدی فاز ۱
+### Phase 1 key APIs
 
 ```http
 POST /api/v1/energy/rul/predict
@@ -253,7 +253,7 @@ GET  /api/v1/energy/consumption/summary
 GET  /api/v1/ingestion/topics
 ```
 
-آموزش مجدد مدل:
+Model retraining:
 
 ```powershell
 $env:PYTHONPATH="."
@@ -262,218 +262,218 @@ python -m ml.energy.train_rul
 
 ---
 
-### یکپارچه‌سازی هفت حوزه فرآیندی با رویکرد تحول دیجیتال و تولید هوشمند
+### Integration of seven process domains with a digital transformation and smart manufacturing approach
 
 ---
 
-### ۱. خلاصه اجرایی (Executive Summary)
+### 1. Executive Summary
 
-شرکت کربن ایران با نماد «شکربن» در بورس اوراق بهادار تهران، با چالش‌های عملیاتی و مالی جدی مواجه است: کاهش ۲۹ درصدی فروش ماهانه، توقف مکرر نماد معاملاتی، هزینه‌های بالای انرژی (با قطعی‌های مکرر برق و اجاره ژنراتور)، و نوسانات شدید قیمت مواد اولیه که ۸۵٪ از بهای تمام‌شده را تشکیل می‌دهند.
+Iran Carbon Company, with the ticker "Shekarbon" on the Tehran Stock Exchange, faces serious operational and financial challenges: a 29 percent drop in monthly sales, frequent suspension of the trading symbol, high energy costs (with frequent power outages and generator rental), and severe volatility in raw material prices, which make up 85% of the cost of goods sold.
 
-این پروپوزال، **برنامه‌ای جامع برای پیاده‌سازی هوش مصنوعی در هفت حوزه کلیدی** را ارائه می‌دهد که حوزه جدید **«تولید هوشمند دوده صنعتی مبتنی بر تقاضا»** را نیز پوشش می‌دهد. بر اساس گزارش‌های جهانی، بازار دوده صنعتی در حال گذار از تولید کالایی به سمت تولید مبتنی بر عملکرد و پایداری است و هوش مصنوعی به عنوان یک توانمندساز عملی در تولید، کنترل کیفیت، لجستیک و پشتیبانی فرمولاسیون مشتریان در این صنعت نقش کلیدی ایفا می‌کند .
-
----
-
-### ۲. حوزه‌های پروژه و هزینه‌های تفکیک‌شده
-
-#### حوزه ۱: مدیریت انرژی و تاسیسات
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **نگهداری و تعمیرات پیش‌بینی‌کننده** | نصب سنسورهای IoT بر روی ژنراتورها، کمپرسورها، کوره‌ها و کولرهای عمودی (ارتفاع ۳۸ متر) با بهره‌گیری از معماری لایه‌ای حسگری، محاسبات لبه و مدل‌سازی AI  | ۲۵ |
-| **بهینه‌سازی مصرف انرژی** | مدل پیش‌بینی قیمت انرژی و زمان پیک مصرف برای تصمیم‌گیری بین برق شهری و ژنراتور | ۱۰ |
-| **زیرمجموعه حوزه ۱** | **جمع** | **۳۵** |
-
-#### حوزه ۲: زنجیره تامین و تدارکات
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **بهینه‌سازی خرید و تامین** | تحلیل داده‌های تامین‌کنندگان، نرخ ارز و قیمت‌های جهانی برای پیشنهاد بهترین زمان خرید قطران و فورفورال اکسترکت | ۸ |
-| **مدیریت هوشمند مناقصات** | تحلیل و انتخاب بهینه در مناقصات خرید ملزومات | ۴ |
-| **زیرمجموعه حوزه ۲** | **جمع** | **۱۲** |
-
-#### حوزه ۳: تولید و کنترل کیفیت
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **کنترل کیفیت لحظه‌ای با بینایی ماشین** | پایش کیفیت ۱۲ گرید دوده صنعتی در لحظه با استفاده از داده‌های سیستم DCS و دوربین‌های هوشمند  | ۱۵ |
-| **کاهش ضایعات و بهینه‌سازی فرآیند** | تحلیل داده‌های کوره‌ها و راکتورها برای کاهش ضریب مصرف انرژی و کاهش تولید محصولات نامرغوب  | ۱۰ |
-| **زیرمجموعه حوزه ۳** | **جمع** | **۲۵** |
-
-#### حوزه ۴: فروش و بازاریابی
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **پیش‌بینی فروش و مدیریت بازار** | تحلیل داده‌های فروش ماهانه و شاخص‌های اقتصادی برای بهینه‌سازی استراتژی قیمت‌گذاری در بازار داخلی و صادراتی | ۷ |
-| **مدیریت مشتریان هوشمند** | تحلیل نیازهای مشتریان کلیدی (تایرسازان داخلی و بین‌المللی) | ۳ |
-| **زیرمجموعه حوزه ۴** | **جمع** | **۱۰** |
-
-#### حوزه ۵: مالی و گزارش‌دهی
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **تحلیل و پیش‌بینی مالی** | شفاف‌سازی نسبت‌های مالی، پیش‌بینی سودآوری و بهبود اعتماد سرمایه‌گذاران | ۵ |
-| **داشبورد مدیریتی هوشمند** | یکپارچه‌سازی اطلاعات مالی، عملیاتی و فروش در قالب داشبورد لحظه‌ای | ۴ |
-| **زیرمجموعه حوزه ۵** | **جمع** | **۹** |
-
-#### حوزه ۶: یکپارچه‌سازی و زیرساخت
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **دیتالیک مرکزی** | ایجاد مخزن داده یکپارچه از تمام سنسورها، سیستم DCS، سیستم مالی و فروش | ۱۲ |
-| **امنیت و زیرساخت فنی** | سرورهای محلی (با توجه به قطعی اینترنت)، پشتیبان‌گیری و امنیت سایبری | ۸ |
-| **آموزش و تغییر فرهنگ سازمانی** | آموزش پرسنل (بیش از ۳۵۰ نفر) در زمینه کاربرد هوش مصنوعی در صنعت | ۵ |
-| **زیرمجموعه حوزه ۶** | **جمع** | **۲۵** |
-
-#### حوزه ۷: تولید هوشمند مبتنی بر تقاضا (NEW)
-
-| زیرپروژه | توضیحات | هزینه برآوردی (میلیارد ریال) |
-|:---|:---|:---|
-| **سیستم پیش‌بینی تقاضا** | توسعه الگوریتم‌های یادگیری ماشین برای تحلیل بازار و پیش‌بینی دقیق نیاز مشتریان به تفکیک گریدهای مختلف دوده صنعتی (بیش از ۱۲ گرید) با استفاده از داده‌های فروش تاریخی، شاخص‌های اقتصادی و روندهای صنعت پایین‌دستی (تایر، لاستیک، رنگ، کابل)  | ۱۲ |
-| **بهینه‌سازی برنامه‌ریزی تولید** | یکپارچه‌سازی پیش‌بینی تقاضا با سیستم برنامه‌ریزی تولید برای کاهش ضایعات، مدیریت بهینه موجودی و پاسخگویی سریع‌تر به نیاز صنایع پایین‌دستی  | ۸ |
-| **سیستم توصیه‌گر گرید** | توسعه مدل هوش مصنوعی برای پیشنهاد گرید مناسب به مشتریان بر اساس نیازهای خاص آنها (رسانایی، پراکندگی، استحکام رنگی و...) که با استفاده از یادگیری ماشین می‌تواند چرخه‌های فرمولاسیون را برای عملکردهای خاص کوتاه‌تر کند  | ۵ |
-| **زیرمجموعه حوزه ۷** | **جمع** | **۲۵** |
+This proposal presents a **comprehensive program for implementing artificial intelligence in seven key domains** which also covers the new domain of **"demand-driven smart carbon black production"**. According to global reports, the carbon black market is transitioning from commodity production toward performance- and sustainability-based production, and artificial intelligence plays a key role in this industry as a practical enabler in production, quality control, logistics and support for customers' formulation .
 
 ---
 
-### ۳. جمع‌بندی هزینه‌های سرمایه‌گذاری (CAPEX)
+### 2. Project domains and itemized costs
 
-| حوزه | هزینه (میلیارد ریال) |
+#### Domain 1: Energy and utilities management
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Predictive maintenance** | Installing IoT sensors on generators, compressors, furnaces and vertical coolers (38 m height) using a layered sensing architecture, edge computing and AI modeling  | 25 |
+| **Energy consumption optimization** | An energy price and peak consumption time forecasting model for deciding between grid power and generator | 10 |
+| **Domain 1 subtotal** | **Total** | **35** |
+
+#### Domain 2: Supply chain and procurement
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Purchasing and supply optimization** | Analyzing supplier data, exchange rate and global prices to suggest the best time to purchase coal tar and furfural extract | 8 |
+| **Smart tender management** | Analysis and optimal selection in tenders for purchasing supplies | 4 |
+| **Domain 2 subtotal** | **Total** | **12** |
+
+#### Domain 3: Production and quality control
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Real-time quality control with machine vision** | Real-time quality monitoring of 12 carbon black grades using DCS system data and smart cameras  | 15 |
+| **Waste reduction and process optimization** | Analysis of furnace and reactor data to reduce the energy consumption coefficient and reduce the production of off-spec products  | 10 |
+| **Domain 3 subtotal** | **Total** | **25** |
+
+#### Domain 4: Sales and marketing
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Sales forecasting and market management** | Analysis of monthly sales data and economic indicators to optimize pricing strategy in domestic and export markets | 7 |
+| **Smart customer management** | Analysis of the needs of key customers (domestic and international tire makers) | 3 |
+| **Domain 4 subtotal** | **Total** | **10** |
+
+#### Domain 5: Finance and reporting
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Financial analysis and forecasting** | Clarifying financial ratios, forecasting profitability and improving investor confidence | 5 |
+| **Smart management dashboard** | Integrating financial, operational and sales information in a real-time dashboard | 4 |
+| **Domain 5 subtotal** | **Total** | **9** |
+
+#### Domain 6: Integration and infrastructure
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Central data lake** | Creating an integrated data repository from all sensors, the DCS system, the financial system and sales | 12 |
+| **Security and technical infrastructure** | Local servers (given internet outages), backup and cybersecurity | 8 |
+| **Training and organizational culture change** | Training personnel (more than 350 people) on the application of AI in industry | 5 |
+| **Domain 6 subtotal** | **Total** | **25** |
+
+#### Domain 7: Demand-driven smart manufacturing (NEW)
+
+| Sub-project | Description | Estimated cost (billion rials) |
+|:---|:---|:---|
+| **Demand forecasting system** | Developing machine learning algorithms to analyze the market and accurately forecast customers' needs by carbon black grade (more than 12 grades) using historical sales data, economic indicators and downstream industry trends (tire, rubber, paint, cable)  | 12 |
+| **Production planning optimization** | Integrating demand forecasting with the production planning system to reduce waste, optimally manage inventory and respond faster to downstream industries' needs  | 8 |
+| **Grade recommender system** | Developing an AI model to suggest the appropriate grade to customers based on their specific needs (conductivity, dispersion, color strength, etc.) which, using machine learning, can shorten formulation cycles for specific performance  | 5 |
+| **Domain 7 subtotal** | **Total** | **25** |
+
+---
+
+### 3. Summary of capital expenditures (CAPEX)
+
+| Domain | Cost (billion rials) |
 |:---|:---|
-| حوزه ۱: مدیریت انرژی و تاسیسات | ۳۵ |
-| حوزه ۲: زنجیره تامین و تدارکات | ۱۲ |
-| حوزه ۳: تولید و کنترل کیفیت | ۲۵ |
-| حوزه ۴: فروش و بازاریابی | ۱۰ |
-| حوزه ۵: مالی و گزارش‌دهی | ۹ |
-| حوزه ۶: یکپارچه‌سازی و زیرساخت | ۲۵ |
-| حوزه ۷: تولید هوشمند مبتنی بر تقاضا | ۲۵ |
-| **جمع کل سرمایه‌گذاری اولیه** | **۱۴۱ میلیارد ریال** |
+| Domain 1: Energy and utilities management | 35 |
+| Domain 2: Supply chain and procurement | 12 |
+| Domain 3: Production and quality control | 25 |
+| Domain 4: Sales and marketing | 10 |
+| Domain 5: Finance and reporting | 9 |
+| Domain 6: Integration and infrastructure | 25 |
+| Domain 7: Demand-driven smart manufacturing | 25 |
+| **Total initial investment** | **141 billion rials** |
 
 ---
 
-### ۴. هزینه‌های عملیاتی سالانه (OPEX)
+### 4. Annual operating costs (OPEX)
 
-| ردیف | اقلام هزینه‌ای | برآورد هزینه سالانه (میلیارد ریال) |
+| No. | Cost items | Estimated annual cost (billion rials) |
 |:---|:---|:---|
-| ۱ | نگهداری و پشتیبانی فنی سیستم‌ها (هفت حوزه) | ۱۵ |
-| ۲ | هزینه‌های جاری زیرساخت (برق، اینترنت، فضای ابری) | ۶ |
-| ۳ | تیم پشتیبانی داخلی (۳ متخصص داده + ۲ مهندس ابزار دقیق) | ۱۵ |
-| **جمع هزینه‌های عملیاتی سالانه** | **۳۶ میلیارد ریال** ||
+| 1 | Technical maintenance and support of the systems (seven domains) | 15 |
+| 2 | Infrastructure running costs (electricity, internet, cloud space) | 6 |
+| 3 | Internal support team (3 data specialists + 2 instrumentation engineers) | 15 |
+| **Total annual operating costs** | **36 billion rials** ||
 
 ---
 
-### ۵. مدت زمان اجرا (Timeline)
+### 5. Implementation timeline (Timeline)
 
-| فاز | حوزه‌های تحت پوشش | مدت زمان (ماه) |
+| Phase | Domains covered | Duration (months) |
 |:---|:---|:---|
-| **فاز ۱: زیرساخت** | حوزه ۶ (دیتالیک، سرور، امنیت) | ۴ ماه |
-| **فاز ۲: داده و مدل‌سازی** | حوزه‌های ۱، ۲، ۳ و ۷ (جمع‌آوری داده، آموزش مدل‌ها) | ۷ ماه |
-| **فاز ۳: یکپارچه‌سازی** | حوزه‌های ۴ و ۵ (اتصال به سیستم مالی و فروش) | ۳ ماه |
-| **فاز ۴: استقرار و آموزش** | تمام حوزه‌ها (آموزش پرسنل و بهره‌برداری) | ۲ ماه |
+| **Phase 1: Infrastructure** | Domain 6 (data lake, server, security) | 4 months |
+| **Phase 2: Data and modeling** | Domains 1, 2, 3 and 7 (data collection, model training) | 7 months |
+| **Phase 3: Integration** | Domains 4 and 5 (connection to the financial and sales systems) | 3 months |
+| **Phase 4: Deployment and training** | All domains (personnel training and operation) | 2 months |
 
-**مدت زمان کل اجرا: ۱۶ ماه**
+**Total implementation duration: 16 months**
 
 ---
 
-### ۶. تخصص‌های مورد نیاز (Required Expertise)
+### 6. Required expertise (Required Expertise)
 
-| تخصص | تعداد | شرح وظایف |
+| Expertise | Count | Responsibilities |
 |:---|:---|:---|
-| **مدیر ارشد تحول دیجیتال (CDO)** | ۱ نفر | مدیریت کلان پروژه، هماهنگی بین حوزه‌ها و گزارش به مدیرعامل |
-| **مهندس داده (Data Engineer)** | ۲ نفر | راه‌اندازی دیتالیک، مدیریت جریان داده از سنسورها، DCS و سیستم‌های مالی |
-| **دانشمند داده/متخصص یادگیری ماشین** | ۳ نفر | توسعه مدل‌های پیش‌بینی برای هر هفت حوزه (شامل مدل‌های پیش‌بینی تقاضا و بهینه‌سازی تولید) |
-| **مهندس ابزار دقیق و اتوماسیون** | ۲ نفر | نصب سنسورها، اتصال به سیستم DCS و یکپارچه‌سازی با PLC |
-| **کارشناس نگهداری و تعمیرات** | ۱ نفر | همکاری در تعریف سناریوهای خرابی تجهیزات |
-| **کارشناس مالی و بازرگانی** | ۱ نفر | همکاری در طراحی مدل‌های پیش‌بینی مالی و بازار |
-| **کارشناس تولید و برنامه‌ریزی** | ۱ نفر | همکاری در طراحی مدل پیش‌بینی تقاضا و بهینه‌سازی تولید |
-| **مدیر پروژه (PM)** | ۱ نفر | هماهنگی تیم‌ها، مدیریت بودجه و زمان‌بندی |
-| **مشاور تغییر و توسعه سازمانی** | ۱ نفر | مدیریت مقاومت در برابر تغییر و آموزش کارکنان |
+| **Chief Digital Transformation Officer (CDO)** | 1 person | Overall project management, coordination among domains and reporting to the CEO |
+| **Data Engineer** | 2 people | Setting up the data lake, managing data flow from sensors, DCS and financial systems |
+| **Data scientist / machine learning specialist** | 3 people | Developing prediction models for all seven domains (including demand forecasting and production optimization models) |
+| **Instrumentation and automation engineer** | 2 people | Installing sensors, connecting to the DCS system and integrating with PLCs |
+| **Maintenance expert** | 1 person | Cooperating in defining equipment failure scenarios |
+| **Finance and commerce expert** | 1 person | Cooperating in designing financial and market forecasting models |
+| **Production and planning expert** | 1 person | Cooperating in designing the demand forecasting and production optimization model |
+| **Project manager (PM)** | 1 person | Team coordination, budget and schedule management |
+| **Organizational change and development consultant** | 1 person | Managing resistance to change and training employees |
 
 ---
 
-### ۷. تحلیل مالی (Financial Analysis)
+### 7. Financial analysis (Financial Analysis)
 
-#### مفروضات پایه:
-- نرخ تنزیل (WACC): ۲۵% (با در نظر گرفتن ریسک‌های اقتصادی و نرخ تورم در ایران)
-- افق تحلیل: ۵ سال
-- رشد سالانه بازار دوده صنعتی: حدود ۳.۶% تا ۵.۳% در سطح جهانی 
+#### Baseline assumptions:
+- Discount rate (WACC): 25% (considering economic risks and the inflation rate in Iran)
+- Analysis horizon: 5 years
+- Annual growth of the carbon black market: about 3.6% to 5.3% globally
 
-#### برآورد منافع سالانه (پس از بلوغ کامل):
+#### Estimated annual benefits (after full maturity):
 
-| ردیف | منبع صرفه‌جویی | برآورد سالانه (میلیارد ریال) |
+| No. | Source of savings | Annual estimate (billion rials) |
 |:---|:---|:---|
-| ۱ | کاهش هزینه‌های تعمیرات اضطراری (۳۰٪)  | ۳۵ |
-| ۲ | کاهش مصرف انرژی و بهینه‌سازی انتخاب منبع برق | ۴۰ |
-| ۳ | کاهش ضایعات تولید و افزایش کیفیت (کاهش تولید محصولات نامرغوب)  | ۳۰ |
-| ۴ | افزایش درآمد از طریق بهینه‌سازی قیمت‌گذاری و فروش | ۴۰ |
-| ۵ | کاهش هزینه‌های تامین از طریق بهینه‌سازی خرید | ۲۰ |
-| ۶ | افزایش درآمد از طریق تولید هوشمند مبتنی بر تقاضا (کاهش موجودی اضافی، پاسخگویی سریع‌تر، تولید گریدهای با حاشیه سود بالاتر)  | ۳۵ |
-| **جمع منافع سالانه** | **۲۰۰ میلیارد ریال** ||
+| 1 | Reduction of emergency repair costs (30%)  | 35 |
+| 2 | Reduced energy consumption and optimized choice of power source | 40 |
+| 3 | Reduced production waste and increased quality (reduced production of off-spec products)  | 30 |
+| 4 | Increased revenue through optimized pricing and sales | 40 |
+| 5 | Reduced procurement costs through purchase optimization | 20 |
+| 6 | Increased revenue through demand-driven smart manufacturing (reduced excess inventory, faster response, production of higher-margin grades)  | 35 |
+| **Total annual benefits** | **200 billion rials** ||
 
-#### جریان نقدی و محاسبات NPV و IRR:
+#### Cash flow and NPV and IRR calculations:
 
-| سال | منافع (میلیارد ریال) | هزینه‌ها (میلیارد ریال) | جریان نقدی خالص (میلیارد ریال) | جریان نقدی تنزیل‌شده (۲۵%) |
+| Year | Benefits (billion rials) | Costs (billion rials) | Net cash flow (billion rials) | Discounted cash flow (25%) |
 |:---|:---|:---|:---|:---|
-| ۰ (سرمایه‌گذاری) | - | ۱۴۱- | ۱۴۱- | ۱۴۱- |
-| سال ۱ (بهره‌برداری ۳۵٪) | ۷۰ | ۳۶ | ۳۴ | ۲۷.۲ |
-| سال ۲ (بهره‌برداری ۶۵٪) | ۱۳۰ | ۳۶ | ۹۴ | ۶۰.۲ |
-| سال ۳ (بهره‌برداری کامل) | ۲۰۰ | ۳۶ | ۱۶۴ | ۸۳.۹ |
-| سال ۴ (بهره‌برداری کامل) | ۲۰۰ | ۳۶ | ۱۶۴ | ۶۷.۲ |
-| سال ۵ (بهره‌برداری کامل) | ۲۰۰ | ۳۶ | ۱۶۴ | ۵۳.۷ |
+| 0 (investment) | - | -141 | -141 | -141 |
+| Year 1 (35% operation) | 70 | 36 | 34 | 27.2 |
+| Year 2 (65% operation) | 130 | 36 | 94 | 60.2 |
+| Year 3 (full operation) | 200 | 36 | 164 | 83.9 |
+| Year 4 (full operation) | 200 | 36 | 164 | 67.2 |
+| Year 5 (full operation) | 200 | 36 | 164 | 53.7 |
 
-#### نتایج مالی:
-- **NPV (خالص ارزش فعلی):** حدود **۱۵۱ میلیارد ریال** (به‌شدت مثبت و توجیه‌پذیر)
-- **IRR (نرخ بازده داخلی):** حدود **۸۸٪** (بسیار بالاتر از نرخ تنزیل ۲۵%)
-- **دوره بازگشت سرمایه (Payback Period):** حدود **۲ سال**
+#### Financial results:
+- **NPV (net present value):** about **151 billion rials** (strongly positive and justifiable)
+- **IRR (internal rate of return):** about **88%** (far above the 25% discount rate)
+- **Payback period:** about **2 years**
 
 ---
 
-### ۸. مدت زمان بلوغ محصول (Time to Maturity)
+### 8. Time to product maturity (Time to Maturity)
 
-| شاخص | مدت زمان |
+| Indicator | Duration |
 |:---|:---|
-| بلوغ فنی مدل‌های پیش‌بینی (حوزه‌های ۱، ۲، ۳ و ۷) | پس از ۹ ماه |
-| بلوغ عملیاتی کامل تمام حوزه‌ها | پس از ۱۶ ماه |
-| بازگشت سرمایه | حدود ۲۴ ماه (۲ سال) |
+| Technical maturity of prediction models (domains 1, 2, 3 and 7) | After 9 months |
+| Full operational maturity of all domains | After 16 months |
+| Payback | About 24 months (2 years) |
 
 ---
 
-### ۹. ریسک‌ها و راهکارهای مدیریت
+### 9. Risks and management solutions
 
-| ریسک | احتمال | راهکار کاهش |
+| Risk | Probability | Mitigation |
 |:---|:---|:---|
-| کیفیت پایین داده‌های تاریخی برای آموزش مدل | متوسط | استفاده از روش‌های یادگیری نیمه‌نظارتی و تولید داده‌های سنتتیک |
-| مقاومت پرسنل در برابر سیستم جدید | متوسط | آموزش‌های جامع و مشارکت تیم‌ها در طراحی  |
-| نوسانات نرخ ارز و افزایش هزینه‌های تجهیزات | بالا | تامین تجهیزات داخلی تا حد ممکن |
-| قطعی برق و اینترنت | بالا | پیاده‌سازی سیستم به‌صورت محلی (On-Premise) با پشتیبان‌گیری آفلاین |
-| تغییرات غیرمنتظره در بازار و تقاضا | متوسط | استفاده از مدل‌های یادگیری ماشین با قابلیت به‌روزرسانی مداوم  |
+| Low quality of historical data for model training | Medium | Using semi-supervised learning methods and generating synthetic data |
+| Personnel resistance to the new system | Medium | Comprehensive training and team participation in the design  |
+| Exchange rate volatility and increased equipment costs | High | Procuring domestic equipment as far as possible |
+| Power and internet outages | High | Implementing the system locally (On-Premise) with offline backup |
+| Unexpected market and demand changes | Medium | Using machine learning models with continuous update capability  |
 
 ---
 
-### ۱۰. نتیجه‌گیری و پیشنهاد
+### 10. Conclusion and recommendation
 
-پروژه یکپارچه هوش مصنوعی در هفت حوزه کلیدی شرکت کربن ایران، با سرمایه‌گذاری ۱۴۱ میلیارد ریال، ضمن بازگشت سرمایه در حدود ۲ سال، می‌تواند سالانه بیش از ۲۰۰ میلیارد ریال صرفه‌جویی و افزایش درآمد ایجاد کند.
+The integrated AI project in seven key domains of Iran Carbon Company, with an investment of 141 billion rials, while returning the investment in about 2 years, can generate more than 200 billion rials per year in savings and increased revenue.
 
-**توصیه می‌شود:**
-۱. پروژه با **فاز پایلوت در حوزه انرژی و نگهداری** (بازگشت سرمایه سریع‌تر) آغاز شود.
-۲. حوزه ۷ (تولید هوشمند مبتنی بر تقاضا) به‌عنوان یک **مزیت رقابتی استراتژیک** در کنار سایر حوزه‌ها توسعه یابد تا شرکت را از حالت تولید کالایی به سمت تولید هوشمند و پاسخگو به بازار سوق دهد.
-۳. همزمان با اجرای پروژه، **برنامه جامع آموزش و تغییر فرهنگ** برای بیش از ۳۵۰ پرسنل اجرا شود.
-۴. با توجه به تجربه موفق شرکت‌های پیشرو در صنعت دوده مانند Birla Carbon و Linyuan Advanced در استفاده از هوش مصنوعی ، از توان داخلی و همکاری با شرکت‌های دانش‌بنیان برای پیاده‌سازی استفاده شود.
+**It is recommended that:**
+1. The project start with a **pilot phase in the energy and maintenance domain** (faster payback).
+2. Domain 7 (demand-driven smart manufacturing) be developed as a **strategic competitive advantage** alongside the other domains to move the company from commodity production toward smart, market-responsive manufacturing.
+3. Concurrently with project execution, a **comprehensive training and cultural change program** be run for more than 350 personnel.
+4. Given the successful experience of leading carbon black companies such as Birla Carbon and Linyuan Advanced in using AI , domestic capacity and cooperation with knowledge-based companies be used for implementation.
 
 ---
 
-## پیوست: مستندات نیازمندی‌های سیستم (SRS)
+## Appendix: System Requirements Specification (SRS)
 
-### ۱. معرفی
+### 1. Introduction
 
-#### ۱-۱ هدف
-هدف این سند، تعیین دقیق نیازمندی‌های سیستم یکپارچه هوش مصنوعی برای شرکت کربن ایران در هفت حوزه کلیدی است.
+#### 1-1 Purpose
+The purpose of this document is to precisely specify the requirements of the integrated AI system for Iran Carbon Company in seven key domains.
 
-#### ۱-۲ محدوده سیستم
-سیستم شامل جمع‌آوری داده از سنسورهای IoT، سیستم DCS، سیستم مالی و فروش، و ارائه خروجی‌های تحلیلی و پیش‌بینی‌کننده به مدیران و اپراتورها است. سیستم جدید همچنین شامل ماژول پیش‌بینی تقاضا و بهینه‌سازی برنامه‌ریزی تولید است.
+#### 1-2 System scope
+The system includes collecting data from IoT sensors, the DCS system, the financial and sales system, and delivering analytical and predictive outputs to managers and operators. The new system also includes a demand forecasting and production planning optimization module.
 
-#### ۱-۳ تعاریف و اختصارات
-- **RUL:** Remaining Useful Life (عمر مفید باقیمانده)
+#### 1-3 Definitions and abbreviations
+- **RUL:** Remaining Useful Life
 - **CMMS:** Computerized Maintenance Management System
 - **DCS:** Distributed Control System
 - **IoT:** Internet of Things
@@ -481,149 +481,149 @@ python -m ml.energy.train_rul
 
 ---
 
-### ۲. نیازمندی‌های کلی سیستم
+### 2. General system requirements
 
-#### ۲-۱ پلتفرم و معماری
-- سیستم به‌صورت **محلی (On-Premise)** با قابلیت پشتیبان‌گیری آفلاین پیاده‌سازی شود.
-- معماری مبتنی بر **Microservices** برای توسعه و استقرار مستقل هر حوزه.
-- پشتیبانی از **Real-time Data Processing** با تأخیر کمتر از ۵۰۰ میلی‌ثانیه .
+#### 2-1 Platform and architecture
+- The system shall be implemented **on-premise (On-Premise)** with offline backup capability.
+- Architecture based on **Microservices** for independent development and deployment of each domain.
+- Support for **Real-time Data Processing** with a delay of less than 500 milliseconds .
 
-#### ۲-۲ امنیت
-- احراز هویت دو مرحله‌ای (2FA) برای تمام کاربران.
-- رمزنگاری داده‌ها در حالت سکون و در حال انتقال.
-- داده‌های عملیاتی (OT) باید در محیط محلی باقی بمانند و از معماری امنیتی مبتنی بر منطقه‌بندی پیروی کنند .
+#### 2-2 Security
+- Two-factor authentication (2FA) for all users.
+- Encryption of data at rest and in transit.
+- Operational data (OT) must remain in the local environment and follow a security architecture based on zoning .
 
 ---
 
-### ۳. نیازمندی‌های حوزه‌های هفت‌گانه
+### 3. Requirements of the seven domains
 
-#### ۳-۱ حوزه مدیریت انرژی و تاسیسات
-**نیازهای عملکردی:**
+#### 3-1 Energy and utilities management domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| PM-01 | جمع‌آوری داده از سنسورهای ارتعاش، دما، فشار و جریان روی تجهیزات کلیدی  | بالا |
-| PM-02 | محاسبه RUL برای هر تجهیز با دقت حداقل ۹۰٪ | بالا |
-| PM-03 | صدور هشدار خودکار حداقل ۳ روز قبل از خرابی پیش‌بینی‌شده | بالا |
-| PM-04 | پیش‌بینی قیمت برق شهری و هزینه ژنراتور برای تصمیم‌گیری بهینه | متوسط |
-| PM-05 | ارائه داشبورد لحظه‌ای مصرف انرژی به تفکیک خطوط تولید | متوسط |
+| PM-01 | Collecting data from vibration, temperature, pressure and current sensors on key equipment  | High |
+| PM-02 | Calculating RUL for each equipment with an accuracy of at least 90% | High |
+| PM-03 | Issuing an automatic alert at least 3 days before the predicted failure | High |
+| PM-04 | Forecasting grid electricity prices and generator cost for optimal decision-making | Medium |
+| PM-05 | Providing a real-time energy consumption dashboard by production line | Medium |
 
-**نیازهای غیرعملکردی:**
-- دقت پیش‌بینی RUL ≥ ۹۰%
-- تأخیر در پیش‌بینی ≤ ۱ ثانیه
-- ذخیره‌سازی داده‌های تاریخی حداقل به مدت ۵ سال
+**Non-functional requirements:**
+- RUL prediction accuracy ≥ 90%
+- Prediction delay ≤ 1 second
+- Retaining historical data for at least 5 years
 
 ---
 
-#### ۳-۲ حوزه زنجیره تامین و تدارکات
-**نیازهای عملکردی:**
+#### 3-2 Supply chain and procurement domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| SC-01 | تحلیل داده‌های تامین‌کنندگان و رتبه‌بندی آنها | بالا |
-| SC-02 | پیش‌بینی قیمت مواد اولیه بر اساس نرخ ارز و قیمت‌های جهانی | بالا |
-| SC-03 | پیشنهاد بهترین زمان و مقدار خرید برای کاهش هزینه‌ها | متوسط |
-| SC-04 | تحلیل و رتبه‌بندی مناقصات خرید | متوسط |
-| SC-05 | یکپارچه‌سازی با سیستم انبارداری موجود | پایین |
+| SC-01 | Analyzing supplier data and ranking them | High |
+| SC-02 | Forecasting raw material prices based on the exchange rate and global prices | High |
+| SC-03 | Suggesting the best time and quantity to purchase to reduce costs | Medium |
+| SC-04 | Analyzing and ranking purchase tenders | Medium |
+| SC-05 | Integration with the existing warehouse system | Low |
 
-**نیازهای غیرعملکردی:**
-- دقت پیش‌بینی قیمت ≥ ۸۵% در افق ۳ ماهه
-- به‌روزرسانی داده‌ها حداقل روزانه
+**Non-functional requirements:**
+- Price prediction accuracy ≥ 85% over a 3-month horizon
+- Data updated at least daily
 
 ---
 
-#### ۳-۳ حوزه تولید و کنترل کیفیت
-**نیازهای عملکردی:**
+#### 3-3 Production and quality control domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| QC-01 | پایش لحظه‌ای کیفیت ۱۲ گرید دوده با استفاده از بینایی ماشین و داده‌های DCS  | بالا |
-| QC-02 | تشخیص ناهنجاری‌های فرآیند تولید و صدور هشدار | بالا |
-| QC-03 | پیش‌بینی کیفیت محصول نهایی قبل از پایان فرآیند با استفاده از شبکه‌های عصبی  | بالا |
-| QC-04 | تحلیل داده‌های کوره‌ها و راکتورها برای پیش‌بینی انتشار کربن سیاه  | متوسط |
-| QC-05 | ارائه توصیه‌های بهینه‌سازی پارامترهای فرآیند | متوسط |
+| QC-01 | Real-time quality monitoring of 12 carbon black grades using machine vision and DCS data  | High |
+| QC-02 | Detecting production process anomalies and issuing alerts | High |
+| QC-03 | Predicting the final product quality before the end of the process using neural networks  | High |
+| QC-04 | Analyzing furnace and reactor data to predict carbon black emissions  | Medium |
+| QC-05 | Providing recommendations to optimize process parameters | Medium |
 
-**نیازهای غیرعملکردی:**
-- دقت تشخیص ناهنجاری ≥ ۹۵%
-- تأخیر در تحلیل ≤ ۱۰۰ میلی‌ثانیه
-- قابلیت اتصال به سیستم DCS از طریق OPC-UA
+**Non-functional requirements:**
+- Anomaly detection accuracy ≥ 95%
+- Analysis delay ≤ 100 milliseconds
+- Ability to connect to the DCS system via OPC-UA
 
 ---
 
-#### ۳-۴ حوزه فروش و بازاریابی
-**نیازهای عملکردی:**
+#### 3-4 Sales and marketing domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| SM-01 | پیش‌بینی فروش ماهانه با دقت ≥ ۸۵% | بالا |
-| SM-02 | تحلیل بازار و پیشنهاد قیمت‌گذاری بهینه برای بازار داخلی و صادراتی | بالا |
-| SM-03 | تحلیل نیازهای مشتریان کلیدی | متوسط |
-| SM-04 | شناسایی فرصت‌های بازار جدید برای گریدهای مختلف دوده | متوسط |
-| SM-05 | یکپارچه‌سازی با سیستم فروش موجود | پایین |
+| SM-01 | Monthly sales forecasting with an accuracy of ≥ 85% | High |
+| SM-02 | Market analysis and suggesting optimal pricing for domestic and export markets | High |
+| SM-03 | Analyzing the needs of key customers | Medium |
+| SM-04 | Identifying new market opportunities for different carbon black grades | Medium |
+| SM-05 | Integration with the existing sales system | Low |
 
-**نیازهای غیرعملکردی:**
-- دقت پیش‌بینی فروش ≥ ۸۵%
-- به‌روزرسانی داده‌های بازار به‌صورت هفتگی
+**Non-functional requirements:**
+- Sales forecast accuracy ≥ 85%
+- Market data updated weekly
 
 ---
 
-#### ۳-۵ حوزه مالی و گزارش‌دهی
-**نیازهای عملکردی:**
+#### 3-5 Finance and reporting domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| FI-01 | پیش‌بینی سودآوری و جریان نقدی با دقت ≥ ۸۰% | بالا |
-| FI-02 | تحلیل نسبت‌های مالی و شناسایی نقاط بهبود | بالا |
-| FI-03 | ارائه داشبورد مدیریتی یکپارچه | بالا |
-| FI-04 | شفاف‌سازی هزینه‌ها به تفکیک خطوط تولید و گریدها | متوسط |
-| FI-05 | پیش‌بینی نیاز نقدینگی برای برنامه‌ریزی مالی | متوسط |
+| FI-01 | Forecasting profitability and cash flow with an accuracy of ≥ 80% | High |
+| FI-02 | Analyzing financial ratios and identifying improvement points | High |
+| FI-03 | Providing an integrated management dashboard | High |
+| FI-04 | Clarifying costs by production line and grade | Medium |
+| FI-05 | Forecasting liquidity needs for financial planning | Medium |
 
-**نیازهای غیرعملکردی:**
-- به‌روزرسانی داشبورد به‌صورت لحظه‌ای
-- قابلیت صدور گزارش‌های استاندارد مالی و عملیاتی
+**Non-functional requirements:**
+- Dashboard updated in real time
+- Ability to issue standard financial and operational reports
 
 ---
 
-#### ۳-۶ حوزه یکپارچه‌سازی و زیرساخت
-**نیازهای عملکردی:**
+#### 3-6 Integration and infrastructure domain
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| IN-01 | ایجاد دیتالیک مرکزی یکپارچه از تمام سنسورها، سیستم DCS و سیستم‌های مالی و فروش | بالا |
-| IN-02 | پیاده‌سازی سیستم مدیریت لاگ و مانیتورینگ یکپارچه | بالا |
-| IN-03 | ارائه پلتفرم آموزش مجازی برای کارکنان | متوسط |
-| IN-04 | پیاده‌سازی سیستم مدیریت تغییر و ارزیابی پذیرش کاربران | متوسط |
-| IN-05 | ایجاد API استاندارد برای اتصال به سامانه‌های آینده | پایین |
+| IN-01 | Creating an integrated central data lake from all sensors, the DCS system and the financial and sales systems | High |
+| IN-02 | Implementing an integrated log management and monitoring system | High |
+| IN-03 | Providing a virtual training platform for employees | Medium |
+| IN-04 | Implementing a change management system and user adoption assessment | Medium |
+| IN-05 | Creating a standard API for connecting to future systems | Low |
 
-**نیازهای غیرعملکردی:**
-- در دسترس بودن سیستم ≥ ۹۹.۹%
-- RTO (Recovery Time Objective) ≤ ۲ ساعت
-- RPO (Recovery Point Objective) ≤ ۱ ساعت
+**Non-functional requirements:**
+- System availability ≥ 99.9%
+- RTO (Recovery Time Objective) ≤ 2 hours
+- RPO (Recovery Point Objective) ≤ 1 hour
 
 ---
 
-#### ۳-۷ حوزه تولید هوشمند مبتنی بر تقاضا (NEW)
-**نیازهای عملکردی:**
+#### 3-7 Demand-driven smart manufacturing domain (NEW)
+**Functional requirements:**
 
-| شناسه | نیاز | اولویت |
+| ID | Requirement | Priority |
 |:---|:---|:---|
-| DM-01 | توسعه مدل یادگیری ماشین برای پیش‌بینی تقاضای هر گرید دوده صنعتی با افق ۱، ۳ و ۶ ماهه بر اساس داده‌های فروش تاریخی، شاخص‌های اقتصادی و روند صنایع پایین‌دستی  | بالا |
-| DM-02 | تحلیل حساسیت تقاضا به عوامل اقتصادی (نرخ ارز، قیمت جهانی نفت، نرخ تورم) | بالا |
-| DM-03 | یکپارچه‌سازی پیش‌بینی تقاضا با سیستم برنامه‌ریزی تولید (ERP) برای بهینه‌سازی حجم تولید هر گرید | بالا |
-| DM-04 | توسعه سیستم توصیه‌گر برای پیشنهاد گرید مناسب به مشتریان بر اساس نیازهای عملکردی (رسانایی، پراکندگی، استحکام رنگی و...) با استفاده از یادگیری ماشین برای کوتاه‌تر کردن چرخه‌های فرمولاسیون  | متوسط |
-| DM-05 | ارائه داشبورد تحلیل بازار و تقاضا با قابلیت شبیه‌سازی سناریوهای مختلف | متوسط |
-| DM-06 | پیشنهاد تولید گریدهای خاص با حاشیه سود بالاتر بر اساس تحلیل بازار  | متوسط |
+| DM-01 | Developing a machine learning model to forecast the demand for each carbon black grade with 1, 3 and 6-month horizons based on historical sales data, economic indicators and downstream industry trends  | High |
+| DM-02 | Analyzing demand sensitivity to economic factors (exchange rate, global oil price, inflation rate) | High |
+| DM-03 | Integrating demand forecasting with the production planning system (ERP) to optimize the production volume of each grade | High |
+| DM-04 | Developing a recommender system to suggest the appropriate grade to customers based on functional needs (conductivity, dispersion, color strength, etc.) using machine learning to shorten formulation cycles  | Medium |
+| DM-05 | Providing a market and demand analysis dashboard with the ability to simulate different scenarios | Medium |
+| DM-06 | Suggesting the production of specific grades with higher profit margins based on market analysis  | Medium |
 
-**نیازهای غیرعملکردی:**
-- دقت پیش‌بینی تقاضا ≥ ۸۰% در افق ۳ ماهه
-- به‌روزرسانی مدل‌ها با داده‌های جدید به‌صورت هفتگی
-- قابلیت اتصال به پایگاه‌های داده خارجی (شاخص‌های اقتصادی، قیمت‌های جهانی)
+**Non-functional requirements:**
+- Demand forecast accuracy ≥ 80% over a 3-month horizon
+- Models updated weekly with new data
+- Ability to connect to external databases (economic indicators, global prices)
 
 ---
 
-### ۴. داده‌های سنتتیک (Synthetic Data)
+### 4. Synthetic Data
 
-#### ۴-۱ داده‌های حوزه نگهداری و تعمیرات
+#### 4-1 Maintenance and repair domain data
 
 ```json
 {
@@ -655,7 +655,7 @@ python -m ml.energy.train_rul
 }
 ```
 
-#### ۴-۲ داده‌های حوزه تولید و کنترل کیفیت
+#### 4-2 Production and quality control domain data
 
 ```json
 {
@@ -686,7 +686,7 @@ python -m ml.energy.train_rul
 }
 ```
 
-#### ۴-۳ داده‌های حوزه فروش و بازار
+#### 4-3 Sales and market domain data
 
 ```json
 {
@@ -699,7 +699,7 @@ python -m ml.energy.train_rul
   },
   "customer": {
     "id": "CUST-0047",
-    "name": "تایر سهند",
+    "name": "Sahand Tire",
     "segment": "tire_manufacturer",
     "industry": "tire",
     "annual_consumption_kg": 180000
@@ -714,7 +714,7 @@ python -m ml.energy.train_rul
 }
 ```
 
-#### ۴-۴ داده‌های حوزه تولید هوشمند مبتنی بر تقاضا (NEW)
+#### 4-4 Demand-driven smart manufacturing domain data (NEW)
 
 ```json
 {
@@ -751,15 +751,15 @@ python -m ml.energy.train_rul
 }
 ```
 
-#### ۴-۵ داده‌های حوزه زنجیره تامین
+#### 4-5 Supply chain domain data
 
 ```json
 {
   "purchase_order": "PO-2026-07-16-003",
-  "material": "قطران (فورفورال اکسترکت)",
+  "material": "Coal tar (furfural extract)",
   "supplier": {
     "id": "SUP-0012",
-    "name": "پتروشیمی تبریز",
+    "name": "Tabriz Petrochemical",
     "rating": 4.2,
     "delivery_reliability": 0.92,
     "quality_rating": 4.5
@@ -784,7 +784,7 @@ python -m ml.energy.train_rul
 }
 ```
 
-#### ۴-۶ داده‌های حوزه مالی و گزارش‌دهی
+#### 4-6 Finance and reporting domain data
 
 ```json
 {
@@ -822,6 +822,6 @@ python -m ml.energy.train_rul
 
 ---
 
-### ۵. جمع‌بندی SRS
+### 5. SRS Summary
 
-این مستندات نیازمندی‌های سیستم (SRS) به‌عنوان نقشه راه توسعه، پیاده‌سازی و استقرار سیستم یکپارچه هوش مصنوعی در شرکت کربن ایران عمل خواهد کرد. حوزه جدید **تولید هوشمند مبتنی بر تقاضا**، شرکت را از حالت تولید کالایی به سمت تولید هوشمند و پاسخگو به بازار سوق می‌دهد و با کاهش ضایعات، مدیریت بهینه موجودی و پاسخگویی سریع‌تر به نیاز صنایع پایین‌دستی، مزیت رقابتی قابل توجهی ایجاد می‌کند . با توجه به روندهای جهانی و گزارش‌های منتشرشده، شرکت‌های پیشرو در صنعت دوده که ترکیبی از تولید کارآمد با عملیات کم‌انتشار، کنترل فرآیند مبتنی بر هوش مصنوعی و نوآوری در کاربردهای خاص را ارائه می‌دهند، بهترین موقعیت را در زنجیره‌های ارزش صنایع خودرو، زیرساخت، الکترونیک و بسته‌بندی خواهند داشت .
+This System Requirements Specification (SRS) will serve as a roadmap for the development, implementation and deployment of the integrated AI system at Iran Carbon Company. The new domain of **demand-driven smart manufacturing** moves the company from commodity production toward smart, market-responsive manufacturing and, by reducing waste, optimally managing inventory and responding faster to downstream industries' needs, creates a considerable competitive advantage . Given global trends and published reports, leading carbon black companies that offer a combination of efficient production with low-emission operations, AI-based process control and innovation in specialty applications will be best positioned in the value chains of the automotive, infrastructure, electronics and packaging industries .

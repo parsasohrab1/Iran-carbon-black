@@ -25,14 +25,14 @@ BASE_RUL_DAYS: dict[str, float] = {
 }
 
 COMPONENT_LABEL_FA: dict[str, str] = {
-    "belt": "تسمه",
-    "oil": "روغن / روانکاری",
-    "air": "هوا / سیستم هوا",
-    "bearing": "یاتاقان",
-    "filter": "فیلتر",
-    "seal": "آب‌بند / سیل",
-    "motor": "موتور الکتریکی",
-    "coupling": "کوپلینگ",
+    "belt": "Belt",
+    "oil": "Oil / lubrication",
+    "air": "Air / air system",
+    "bearing": "Bearing",
+    "filter": "Filter",
+    "seal": "Seal",
+    "motor": "Electric motor",
+    "coupling": "Coupling",
 }
 
 ALERT_THRESHOLD_DAYS = 14.0  # raise maintenance alert when RUL <= this
@@ -41,200 +41,200 @@ ALERT_THRESHOLD_DAYS = 14.0  # raise maintenance alert when RUL <= this
 def _component_defs() -> list[dict[str, Any]]:
     """Wear components linked to plant equipment."""
     return [
-        # —— تسمه‌ها ——
+        # —— Belts ——
         {
             "id": "CMP-BELT-DRY",
             "component_type": "belt",
-            "name_fa": "تسمه درایو خشک‌کن دوار",
+            "name_fa": "Rotary dryer drive belt",
             "equipment_id": "DRY-001",
             "sensors": ["vibration_x", "current_draw", "temperature"],
-            "failure_mode_fa": "سایش / لغزش تسمه",
-            "action_fa": "بازرسی کشش تسمه، تعویض در صورت ترک یا براق‌شدگی",
+            "failure_mode_fa": "Belt wear / slip",
+            "action_fa": "Inspect belt tension; replace if cracked or glazed",
         },
         {
             "id": "CMP-BELT-GRN",
             "component_type": "belt",
-            "name_fa": "تسمه انتقال گرانولاتور",
+            "name_fa": "Pelletizer transmission belt",
             "equipment_id": "GRN-001",
             "sensors": ["vibration_x", "current_draw"],
-            "failure_mode_fa": "پارگی یا شل‌شدن تسمه",
-            "action_fa": "تنظیم کشش و تعویض تسمه یدکی",
+            "failure_mode_fa": "Belt tear or loosening",
+            "action_fa": "Adjust tension and replace with a spare belt",
         },
         {
             "id": "CMP-BELT-SCR",
             "component_type": "belt",
-            "name_fa": "تسمه سرند محصول",
+            "name_fa": "Product screen belt",
             "equipment_id": "SCR-001",
             "sensors": ["vibration_x", "current_draw", "throughput"],
-            "failure_mode_fa": "فرسودگی تسمه ویبره",
-            "action_fa": "تعویض تسمه سرند و بالانس دینامیکی",
+            "failure_mode_fa": "Vibrating belt wear",
+            "action_fa": "Replace the screen belt and dynamic balancing",
         },
         {
             "id": "CMP-BELT-PKG",
             "component_type": "belt",
-            "name_fa": "تسمه نقاله بسته‌بندی",
+            "name_fa": "Packaging conveyor belt",
             "equipment_id": "PKG-001",
             "sensors": ["current_draw", "throughput"],
-            "failure_mode_fa": "لغزش تسمه نقاله",
-            "action_fa": "تمیزکاری غلطک و تعویض تسمه در صورت سایش",
+            "failure_mode_fa": "Conveyor belt slip",
+            "action_fa": "Clean the roller and replace the belt if worn",
         },
-        # —— روغن ——
+        # —— Oil ——
         {
             "id": "CMP-OIL-FEED",
             "component_type": "oil",
-            "name_fa": "روغن روانکار پمپ خوراک CBFS",
+            "name_fa": "CBFS feed pump lubricating oil",
             "equipment_id": "OIL-001",
             "sensors": ["oil_pressure", "temperature", "current_draw"],
-            "failure_mode_fa": "افت فشار / آلودگی روغن",
-            "action_fa": "آنالیز روغن، تعویض فیلتر و تکمیل سطح",
+            "failure_mode_fa": "Pressure drop / oil contamination",
+            "action_fa": "Oil analysis, filter replacement and level top-up",
         },
         {
             "id": "CMP-OIL-FAN",
             "component_type": "oil",
-            "name_fa": "روغن یاتاقان فن مکش",
+            "name_fa": "Suction fan bearing oil",
             "equipment_id": "FAN-001",
             "sensors": ["oil_pressure", "temperature", "vibration_x"],
-            "failure_mode_fa": "کاهش روانکاری یاتاقان",
-            "action_fa": "کنترل سطح روغن و تعویض طبق برنامه PM",
+            "failure_mode_fa": "Reduced bearing lubrication",
+            "action_fa": "Check oil level and replace per the PM schedule",
         },
         {
             "id": "CMP-OIL-CMP",
             "component_type": "oil",
-            "name_fa": "روغن کمپرسور هوای ابزار دقیق",
+            "name_fa": "Instrument air compressor oil",
             "equipment_id": "CMP-001",
             "sensors": ["oil_pressure", "temperature", "current_draw"],
-            "failure_mode_fa": "اکسیداسیون / افت ویسکوزیته",
-            "action_fa": "تعویض روغن کمپرسور و فیلتر سپراتور",
+            "failure_mode_fa": "Oxidation / viscosity loss",
+            "action_fa": "Replace compressor oil and separator filter",
         },
         {
             "id": "CMP-OIL-GEN",
             "component_type": "oil",
-            "name_fa": "روغن موتور ژنراتور اضطراری",
+            "name_fa": "Emergency generator engine oil",
             "equipment_id": "GEN-001",
             "sensors": ["oil_pressure", "temperature", "current_draw"],
-            "failure_mode_fa": "فشار پایین روغن موتور",
-            "action_fa": "تست استندبای، تعویض روغن و فیلتر",
+            "failure_mode_fa": "Low engine oil pressure",
+            "action_fa": "Standby test, oil and filter replacement",
         },
-        # —— هوا ——
+        # —— Air ——
         {
             "id": "CMP-AIR-BLOW",
             "component_type": "air",
-            "name_fa": "سیستم هوای احتراق (دمنده)",
+            "name_fa": "Combustion air system (blower)",
             "equipment_id": "AIR-001",
             "sensors": ["air_flow", "pressure", "vibration_x", "current_draw"],
-            "failure_mode_fa": "کاهش ظرفیت هوا / گرفتگی",
-            "action_fa": "بازرسی فیلتر ورودی هوا و بالانس دمپر",
+            "failure_mode_fa": "Reduced air capacity / blockage",
+            "action_fa": "Inspect the air intake filter and balance the damper",
         },
         {
             "id": "CMP-AIR-PNE",
             "component_type": "air",
-            "name_fa": "هوای انتقال پنوماتیک دوده",
+            "name_fa": "Carbon black pneumatic conveying air",
             "equipment_id": "PNE-001",
             "sensors": ["air_flow", "pressure", "current_draw"],
-            "failure_mode_fa": "نشتی خط یا افت فشار انتقال",
-            "action_fa": "نشتی‌یابی فلنج‌ها و تنظیم بلوور",
+            "failure_mode_fa": "Line leak or conveying pressure drop",
+            "action_fa": "Flange leak detection and blower adjustment",
         },
         {
             "id": "CMP-AIR-CMP",
             "component_type": "air",
-            "name_fa": "هوای فشرده ابزار دقیق",
+            "name_fa": "Instrument compressed air",
             "equipment_id": "CMP-001",
             "sensors": ["pressure", "current_draw", "temperature"],
-            "failure_mode_fa": "افت فشار هوای ابزار",
-            "action_fa": "بازرسی درایر و تله آب؛ سرویس کمپرسور",
+            "failure_mode_fa": "Instrument air pressure drop",
+            "action_fa": "Inspect the dryer and water trap; service the compressor",
         },
         {
             "id": "CMP-AIR-FUR1",
             "component_type": "air",
-            "name_fa": "هوای احتراق کوره خط ۱",
+            "name_fa": "Line 1 furnace combustion air",
             "equipment_id": "FUR-001",
             "sensors": ["air_flow", "pressure", "temperature"],
-            "failure_mode_fa": "نسبت هوا-سوخت نامناسب",
-            "action_fa": "کالیبراسیون فلومتر هوا و بازرسی مسیر",
+            "failure_mode_fa": "Improper air-fuel ratio",
+            "action_fa": "Calibrate the air flow meter and inspect the path",
         },
-        # —— یاتاقان ——
+        # —— Bearings ——
         {
             "id": "CMP-BRG-FAN",
             "component_type": "bearing",
-            "name_fa": "یاتاقان فن ID",
+            "name_fa": "ID fan bearing",
             "equipment_id": "FAN-001",
             "sensors": ["vibration_x", "vibration_y", "temperature"],
-            "failure_mode_fa": "خستگی یاتاقان / ارتعاش بالا",
-            "action_fa": "آنالیز ارتعاش و برنامه‌ریزی تعویض یاتاقان",
+            "failure_mode_fa": "Bearing fatigue / high vibration",
+            "action_fa": "Vibration analysis and bearing replacement planning",
         },
         {
             "id": "CMP-BRG-AIR",
             "component_type": "bearing",
-            "name_fa": "یاتاقان دمنده هوا",
+            "name_fa": "Air blower bearing",
             "equipment_id": "AIR-001",
             "sensors": ["vibration_x", "current_draw", "temperature"],
-            "failure_mode_fa": "سایش یاتاقان",
-            "action_fa": "گریس‌کاری / تعویض یاتاقان",
+            "failure_mode_fa": "Bearing wear",
+            "action_fa": "Greasing / bearing replacement",
         },
         {
             "id": "CMP-BRG-PMP",
             "component_type": "bearing",
-            "name_fa": "یاتاقان پمپ آب کوئنچ",
+            "name_fa": "Quench water pump bearing",
             "equipment_id": "PMP-001",
             "sensors": ["vibration_x", "current_draw", "pressure"],
-            "failure_mode_fa": "کاویتاسیون و آسیب یاتاقان",
-            "action_fa": "کنترل NPSH و وضعیت یاتاقان",
+            "failure_mode_fa": "Cavitation and bearing damage",
+            "action_fa": "Check NPSH and bearing condition",
         },
-        # —— فیلتر ——
+        # —— Filters ——
         {
             "id": "CMP-FLT-BAG",
             "component_type": "filter",
-            "name_fa": "کیسه فیلتر بگ‌هاوس",
+            "name_fa": "Baghouse filter bag",
             "equipment_id": "BAG-001",
             "sensors": ["pressure", "pulse_pressure", "dust_outlet"],
-            "failure_mode_fa": "گرفتگی / پارگی کیسه",
-            "action_fa": "پالس تمیزکاری و تعویض کیسه‌های معیوب",
+            "failure_mode_fa": "Blockage / bag tear",
+            "action_fa": "Cleaning pulse and replacement of faulty bags",
         },
         {
             "id": "CMP-FLT-AIR",
             "component_type": "filter",
-            "name_fa": "فیلتر ورودی هوای احتراق",
+            "name_fa": "Combustion air inlet filter",
             "equipment_id": "AIR-001",
             "sensors": ["air_flow", "pressure", "current_draw"],
-            "failure_mode_fa": "گرفتگی فیلتر هوا",
-            "action_fa": "تعویض/شستشوی فیلتر ورودی",
+            "failure_mode_fa": "Air filter blockage",
+            "action_fa": "Replace/wash the inlet filter",
         },
-        # —— سیل / کوپلینگ / موتور ——
+        # —— Seals / couplings / motors ——
         {
             "id": "CMP-SEAL-OIL",
             "component_type": "seal",
-            "name_fa": "آب‌بند مکانیکی پمپ روغن",
+            "name_fa": "Oil pump mechanical seal",
             "equipment_id": "OIL-001",
             "sensors": ["oil_pressure", "pressure", "temperature"],
-            "failure_mode_fa": "نشتی سیل",
-            "action_fa": "بازرسی نشتی و تعویض سیل",
+            "failure_mode_fa": "Seal leak",
+            "action_fa": "Leak inspection and seal replacement",
         },
         {
             "id": "CMP-CPL-FAN",
             "component_type": "coupling",
-            "name_fa": "کوپلینگ فن مکش",
+            "name_fa": "Suction fan coupling",
             "equipment_id": "FAN-001",
             "sensors": ["vibration_x", "current_draw"],
-            "failure_mode_fa": "عدم هم‌محوری کوپلینگ",
-            "action_fa": "آلینمنت لیزری و تعویض الاستومر",
+            "failure_mode_fa": "Coupling misalignment",
+            "action_fa": "Laser alignment and elastomer replacement",
         },
         {
             "id": "CMP-MTR-FAN",
             "component_type": "motor",
-            "name_fa": "موتور فن مکش",
+            "name_fa": "Suction fan motor",
             "equipment_id": "FAN-001",
             "sensors": ["current_draw", "vibration_x", "temperature"],
-            "failure_mode_fa": "اضافه‌بار / گرم‌شدن موتور",
-            "action_fa": "ترموگرافی و تست عایق سیم‌پیچ",
+            "failure_mode_fa": "Overload / motor overheating",
+            "action_fa": "Thermography and winding insulation test",
         },
         {
             "id": "CMP-MTR-AIR",
             "component_type": "motor",
-            "name_fa": "موتور دمنده هوا",
+            "name_fa": "Air blower motor",
             "equipment_id": "AIR-001",
             "sensors": ["current_draw", "vibration_x"],
-            "failure_mode_fa": "فرسودگی موتور",
-            "action_fa": "بازرسی بلبرینگ موتور و جریان",
+            "failure_mode_fa": "Motor wear",
+            "action_fa": "Inspect motor bearing and current",
         },
     ]
 
@@ -338,8 +338,8 @@ def estimate_component_rul(
                 "readings_snapshot": {k: readings.get(k) for k in (component.get("sensors") or []) if k in readings},
                 "message": (
                     f"RUL {COMPONENT_LABEL_FA.get(ctype, ctype)} — {component['name_fa']}: "
-                    f"{round(rul, 1)} روز باقی‌مانده "
-                    f"(احتمال خرابی {round(fail_p * 100, 1)}٪). {component.get('action_fa', '')}"
+                    f"{round(rul, 1)} days remaining "
+                    f"(failure probability {round(fail_p * 100, 1)}%). {component.get('action_fa', '')}"
                 ),
                 "alert_type": f"rul_{ctype}",
                 "as_of": datetime.now(timezone.utc).isoformat(),
@@ -376,8 +376,8 @@ def estimate_component_rul(
         "readings_snapshot": {k: readings.get(k) for k in (component.get("sensors") or []) if k in readings},
         "message": (
             f"RUL {COMPONENT_LABEL_FA.get(ctype, ctype)} — {component['name_fa']}: "
-            f"{round(rul, 1)} روز باقی‌مانده "
-            f"(احتمال خرابی {round(fail_p * 100, 1)}٪). {component.get('action_fa', '')}"
+            f"{round(rul, 1)} days remaining "
+            f"(failure probability {round(fail_p * 100, 1)}%). {component.get('action_fa', '')}"
         ),
         "alert_type": f"rul_{ctype}",
         "as_of": datetime.now(timezone.utc).isoformat(),
@@ -404,7 +404,7 @@ def build_component_rul_board(
         by_type[r["component_type"]] = by_type.get(r["component_type"], 0) + 1
 
     return {
-        "source": "RUL اجزا — تسمه · روغن · هوا · یاتاقان · فیلتر · موتور",
+        "source": "Component RUL — belt · oil · air · bearing · filter · motor",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "alert_threshold_days": ALERT_THRESHOLD_DAYS,
         "components": alerts if alert_only else rows,

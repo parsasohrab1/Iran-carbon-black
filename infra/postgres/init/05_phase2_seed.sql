@@ -27,7 +27,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO supply.price_history (time, material, price_irr, source)
 SELECT
     TIMESTAMP '2025-01-01' + (w || ' weeks')::interval,
-    'قطران (فورفورال اکسترکت)',
+    'Coal tar (furfural extract)',
     36000 + w * 280 + (random() * 800)::int,
     'market'
 FROM generate_series(0, 23) AS w;
@@ -35,7 +35,7 @@ FROM generate_series(0, 23) AS w;
 INSERT INTO supply.price_history (time, material, price_irr, source)
 SELECT
     TIMESTAMP '2025-01-01' + (w || ' weeks')::interval,
-    'نفتا',
+    'Naphtha',
     52000 + w * 310 + (random() * 1000)::int,
     'market'
 FROM generate_series(0, 23) AS w;

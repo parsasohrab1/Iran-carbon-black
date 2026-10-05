@@ -68,154 +68,154 @@ export type ProcurementBoard = {
 const SUPPLIERS: ProcurementSupplier[] = [
   {
     id: "SUP-0012",
-    name: "پتروشیمی تبریز",
-    city: "تبریز",
-    province: "آذربایجان شرقی",
-    type: "پتروشیمی داخلی",
+    name: "Tabriz Petrochemical",
+    city: "Tabriz",
+    province: "East Azerbaijan",
+    type: "Domestic petrochemical",
     rating: 4.2,
     delivery_reliability: 0.92,
     quality_rating: 4.5,
     lead_time_days: 7,
-    payment_terms: "۳۰ روزه",
+    payment_terms: "30 days",
     materials: ["cbfs", "naphtha", "ethylene_tar"],
     quotes_irr: { cbfs: 42800, naphtha: 61200, ethylene_tar: 39500 },
-    notes_fa: "تأمین‌کننده اصلی CBFS با پایداری تحویل بالا",
+    notes_fa: "Main CBFS supplier with high delivery reliability",
   },
   {
     id: "SUP-0003",
-    name: "پالایشگاه اصفهان",
-    city: "اصفهان",
-    province: "اصفهان",
-    type: "پالایشگاه",
+    name: "Isfahan Refinery",
+    city: "Isfahan",
+    province: "Isfahan",
+    type: "Refinery",
     rating: 4.0,
     delivery_reliability: 0.88,
     quality_rating: 4.1,
     lead_time_days: 10,
-    payment_terms: "۴۵ روزه",
+    payment_terms: "45 days",
     materials: ["cbfs", "naphtha", "anthracene_oil"],
     quotes_irr: { cbfs: 42100, naphtha: 59800, anthracene_oil: 45200 },
-    notes_fa: "گزینه رقابتی قیمت برای نفتا و روغن آنتراسن",
+    notes_fa: "Price-competitive option for naphtha and anthracene oil",
   },
   {
     id: "SUP-0008",
-    name: "پتروشیمی بندر امام",
-    city: "ماهشهر",
-    province: "خوزستان",
-    type: "پتروشیمی داخلی",
+    name: "Bandar Imam Petrochemical",
+    city: "Mahshahr",
+    province: "Khuzestan",
+    type: "Domestic petrochemical",
     rating: 3.8,
     delivery_reliability: 0.85,
     quality_rating: 4.0,
     lead_time_days: 12,
-    payment_terms: "۳۰ روزه",
+    payment_terms: "30 days",
     materials: ["cbfs", "ethylene_tar", "naphtha"],
     quotes_irr: { cbfs: 43500, ethylene_tar: 38800, naphtha: 60500 },
-    notes_fa: "ظرفیت بالا؛ مناسب سفارش‌های حجیم",
+    notes_fa: "High capacity; suitable for bulk orders",
   },
   {
     id: "SUP-0015",
-    name: "پالایشگاه آبادان",
-    city: "آبادان",
-    province: "خوزستان",
-    type: "پالایشگاه",
+    name: "Abadan Refinery",
+    city: "Abadan",
+    province: "Khuzestan",
+    type: "Refinery",
     rating: 3.9,
     delivery_reliability: 0.83,
     quality_rating: 3.9,
     lead_time_days: 14,
-    payment_terms: "۶۰ روزه",
+    payment_terms: "60 days",
     materials: ["cbfs", "anthracene_oil"],
     quotes_irr: { cbfs: 41900, anthracene_oil: 44800 },
-    notes_fa: "قیمت رقابتی CBFS؛ زمان تحویل طولانی‌تر",
+    notes_fa: "Competitive CBFS price; longer delivery time",
   },
   {
     id: "SUP-0021",
-    name: "پتروشیمی شازند اراک",
-    city: "اراک",
-    province: "مرکزی",
-    type: "پتروشیمی داخلی",
+    name: "Shazand Arak Petrochemical",
+    city: "Arak",
+    province: "Markazi",
+    type: "Domestic petrochemical",
     rating: 4.1,
     delivery_reliability: 0.9,
     quality_rating: 4.3,
     lead_time_days: 8,
-    payment_terms: "۳۰ روزه",
+    payment_terms: "30 days",
     materials: ["ethylene_tar", "naphtha"],
     quotes_irr: { ethylene_tar: 40200, naphtha: 59100 },
-    notes_fa: "منبع پایدار تار اتیلن و نفتا",
+    notes_fa: "Stable source of ethylene tar and naphtha",
   },
   {
     id: "SUP-0030",
-    name: "شرکت ملی گاز — منطقه ۳",
-    city: "اهواز",
-    province: "خوزستان",
-    type: "انرژی / گاز",
+    name: "National Gas Company — Region 3",
+    city: "Ahvaz",
+    province: "Khuzestan",
+    type: "Energy / Gas",
     rating: 4.4,
     delivery_reliability: 0.96,
     quality_rating: 4.6,
     lead_time_days: 1,
-    payment_terms: "قرارداد سالانه",
+    payment_terms: "Annual contract",
     materials: ["natural_gas"],
     quotes_irr: { natural_gas: 18500 },
-    notes_fa: "سوخت فرآیند کوره؛ قرارداد بلندمدت",
+    notes_fa: "Furnace process fuel; long-term contract",
   },
   {
     id: "SUP-0042",
-    name: "بازرگانی انرژی خلیج فارس",
-    city: "تهران",
-    province: "تهران",
-    type: "بازرگان / واردات",
+    name: "Persian Gulf Energy Trading",
+    city: "Tehran",
+    province: "Tehran",
+    type: "Trader / Importer",
     rating: 3.6,
     delivery_reliability: 0.78,
     quality_rating: 3.7,
     lead_time_days: 21,
-    payment_terms: "نقدی / ال‌سی",
+    payment_terms: "Cash / LC",
     materials: ["cbfs", "anthracene_oil"],
     quotes_irr: { cbfs: 44500, anthracene_oil: 46800 },
-    notes_fa: "پشتیبان اضطراری؛ حساس به نرخ ارز",
+    notes_fa: "Emergency backup; sensitive to the exchange rate",
   },
 ];
 
 const MATERIAL_META = [
   {
     id: "cbfs",
-    name_fa: "قطران (فورفورال اکسترکت / CBFS)",
+    name_fa: "Coal tar (furfural extract / CBFS)",
     name_en: "Carbon Black Feedstock Oil (CBFS)",
-    unit: "ریال / کیلوگرم",
-    category: "خوراک اصلی",
+    unit: "rials / kg",
+    category: "Main feedstock",
     criticality: "critical",
     typical_share_pct: 62,
   },
   {
     id: "naphtha",
-    name_fa: "نفتا",
+    name_fa: "Naphtha",
     name_en: "Naphtha",
-    unit: "ریال / کیلوگرم",
-    category: "خوراک مکمل",
+    unit: "rials / kg",
+    category: "Supplementary feedstock",
     criticality: "high",
     typical_share_pct: 18,
   },
   {
     id: "ethylene_tar",
-    name_fa: "تار اتیلن",
+    name_fa: "Ethylene tar",
     name_en: "Ethylene Tar",
-    unit: "ریال / کیلوگرم",
-    category: "خوراک جایگزین",
+    unit: "rials / kg",
+    category: "Alternative feedstock",
     criticality: "medium",
     typical_share_pct: 8,
   },
   {
     id: "anthracene_oil",
-    name_fa: "روغن آنتراسن",
+    name_fa: "Anthracene oil",
     name_en: "Anthracene Oil",
-    unit: "ریال / کیلوگرم",
-    category: "خوراک جایگزین",
+    unit: "rials / kg",
+    category: "Alternative feedstock",
     criticality: "medium",
     typical_share_pct: 5,
   },
   {
     id: "natural_gas",
-    name_fa: "گاز طبیعی (سوخت فرآیند)",
+    name_fa: "Natural gas (process fuel)",
     name_en: "Natural Gas",
-    unit: "ریال / مترمکعب",
-    category: "انرژی",
+    unit: "rials / m³",
+    category: "Energy",
     criticality: "high",
     typical_share_pct: 7,
   },
@@ -251,7 +251,7 @@ export function buildLocalProcurementBoard(): ProcurementBoard {
 
   return {
     source: "Shokrban procurement catalog + supplier quotes",
-    updated_label: "نرخ‌های مرجع تأمین (کاتالوگ آفلاین)",
+    updated_label: "Reference supply rates (offline catalog)",
     materials,
     suppliers: SUPPLIERS,
     summary: {
@@ -412,14 +412,14 @@ export function rankMaterialWarehouseRisks(
       const severity: MaterialWarehouseRisk["severity"] =
         score >= 75 ? "critical" : score >= 55 ? "high" : score >= 35 ? "medium" : "low";
       const severity_fa =
-        severity === "critical" ? "بحرانی" : severity === "high" ? "بالا" : severity === "medium" ? "متوسط" : "کم";
+        severity === "critical" ? "Critical" : severity === "high" ? "High" : severity === "medium" ? "Medium" : "Low";
       const bits: string[] = [];
-      if (m.criticality === "critical" || m.criticality === "high") bits.push("حیاتی برای خط");
-      if (share >= 15) bits.push(`سهم ${Math.round(share)}٪ سبد`);
-      if (lead >= 12) bits.push(`تحویل ${lead} روز`);
-      if (m.trend === "up" || change > 3) bits.push("قیمت صعودی — ریسک انباشت/زمان خرید");
-      if (pressure > 1.08) bits.push("فشار خوراک بازار");
-      if (!bits.length) bits.push("پوشش عادی انبار");
+      if (m.criticality === "critical" || m.criticality === "high") bits.push("Critical for the line");
+      if (share >= 15) bits.push(`${Math.round(share)}% of the basket`);
+      if (lead >= 12) bits.push(`Delivery ${lead} days`);
+      if (m.trend === "up" || change > 3) bits.push("Price rising — accumulation risk/purchase timing");
+      if (pressure > 1.08) bits.push("Market feedstock pressure");
+      if (!bits.length) bits.push("Normal warehouse coverage");
       return {
         material_id: m.id,
         name_fa: m.name_fa,
@@ -437,10 +437,10 @@ export function rankMaterialWarehouseRisks(
 }
 
 export function warehouseRiskTone(severity: string): "danger" | "warn" | "ok" | "neutral" {
-  if (severity === "critical" || severity === "بحرانی") return "danger";
-  if (severity === "high" || severity === "بالا") return "warn";
-  if (severity === "medium" || severity === "متوسط") return "warn";
-  if (severity === "low" || severity === "کم") return "ok";
+  if (severity === "critical" || severity === "Critical") return "danger";
+  if (severity === "high" || severity === "High") return "warn";
+  if (severity === "medium" || severity === "Medium") return "warn";
+  if (severity === "low" || severity === "Low") return "ok";
   return "neutral";
 }
 

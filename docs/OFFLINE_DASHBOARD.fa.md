@@ -1,67 +1,67 @@
-# راهنمای اجرای آفلاین داشبورد در VS Code / Cursor
-# (بدون اینترنت، با اتصال زنده به Backend محلی)
+# Guide to running the dashboard offline in VS Code / Cursor
+# (without internet, with a live connection to the local Backend)
 
-## روش پیشنهادی آفلاین (ذخیره‌شده)
+## Recommended offline method (saved)
 
-داشبورد به‌صورت **بسته استاتیک** در `offline/dashboard` ذخیره می‌شود (فونت محلی، بدون CDN).
+The dashboard is saved as a **static bundle** in `offline/dashboard` (local font, no CDN).
 
-### یک‌بار ذخیره (حتی روی سیستم با اینترنت)
+### Save once (even on a system with internet)
 
 ```powershell
 cd "c:\Users\asus\Documents\companies\ithub\AI\products\clones\iran carbon black\Iran-carbon-black"
 .\scripts\offline-save.ps1
-# اختیاری — آرشیو کامل ایمیج‌های Docker برای انتقال هوایی:
+# optional — full archive of Docker images for air-gapped transfer:
 .\scripts\offline-save.ps1 -SaveDocker
 ```
 
-### هر بار اجرا بدون اینترنت
+### Every run without internet
 
 ```powershell
 .\scripts\offline-run.ps1
 ```
 
-سپس باز کنید: **http://127.0.0.1:5173**
+Then open: **http://127.0.0.1:5173**
 
-| جزء | توضیح |
+| Component | Description |
 |:---|:---|
-| `offline/dashboard` | SPA آماده (HTML/JS/CSS/فونت) |
-| `scripts/offline-static-server.mjs` | سرور محلی بدون وابستگی npm |
-| `docker compose --pull never` | Backend فقط از ایمیج‌های محلی |
-| پروکسی `/api` | به گیت‌وی `18080` |
+| `offline/dashboard` | Ready SPA (HTML/JS/CSS/font) |
+| `scripts/offline-static-server.mjs` | Local server with no npm dependency |
+| `docker compose --pull never` | Backend only from local images |
+| `/api` proxy | to gateway `18080` |
 
-در VS Code: Task **`ICB: Offline run (no internet)`**
+In VS Code: Task **`ICB: Offline run (no internet)`**
 
 ---
 
-## ایده کلی (توسعه با Vite)
+## General idea (development with Vite)
 
-| لایه | آدرس | نقش |
+| Layer | Address | Role |
 |:---|:---|:---|
-| داشبورد Vite | http://127.0.0.1:5173 | UI زنده با Hot Reload |
-| پروکسی API | `/api/*` از Vite | به گیت‌وی محلی فوروارد می‌شود |
-| Backend | http://127.0.0.1:18080 | Docker Compose (اگر ۸۰۸۰ آزاد باشد می‌توانید همان را بگذارید) |
+| Vite dashboard | http://127.0.0.1:5173 | Live UI with Hot Reload |
+| API proxy | `/api/*` from Vite | Forwarded to the local gateway |
+| Backend | http://127.0.0.1:18080 | Docker Compose (if 8080 is free you can use that one) |
 
-> **توجه:** روی بسیاری از ویندوزها پورت `8080` اشغال است. پیش‌فرض پروژه `API_GATEWAY_PORT=18080` است.
+> **Note:** On many Windows systems port `8080` is occupied. The project default is `API_GATEWAY_PORT=18080`.
 
-### اگر `ERR_CONNECTION_REFUSED` دیدید
+### If you see `ERR_CONNECTION_REFUSED`
 
-یعنی آن پورت بالا نیست یا آدرس اشتباه است:
+It means that port is not up or the address is wrong:
 
-1. داشبورد Vite: فقط **http://127.0.0.1:5173** (نه ۸۰۸۰)
-2. Backend را جداگانه بالا بیاورید: `.\scripts\dev-backend.ps1`
-3. اگر Docker ایمیج ناقص است (آنلاین یک‌بار):  
+1. Vite dashboard: only **http://127.0.0.1:5173** (not 8080)
+2. Bring up the Backend separately: `.\scripts\dev-backend.ps1`
+3. If the Docker image is incomplete (online once):
    `docker pull python:3.11-slim`  
    `docker compose build`  
    `docker compose up -d`
 
-اینترنت فقط برای **اولین بار** لازم است (دانلود ایمیج Docker و `npm install`). بعد از آن همه‌چیز روی localhost کار می‌کند. فونت‌ها داخل `web/public/fonts` هستند و CDN ندارند.
+The internet is needed only for the **first time** (downloading Docker images and `npm install`). After that everything works on localhost. Fonts are inside `web/public/fonts` and there is no CDN.
 
 ---
 
-## پیش‌نیاز یک‌باره (آنلاین)
+## One-time prerequisites (online)
 
-1. **Docker Desktop** را نصب و روشن کنید.
-2. در ریشه پروژه:
+1. Install and start **Docker Desktop**.
+2. In the project root:
 
 ```powershell
 Copy-Item .env.example .env -ErrorAction SilentlyContinue
@@ -72,37 +72,37 @@ npm install
 cd ..
 ```
 
-3. (اختیاری) داده نمونه:
+3. (Optional) sample data:
 
 ```powershell
 python scripts/seed_synthetic.py
 ```
 
-بعد از این مرحله می‌توانید اینترنت را قطع کنید.
+After this step you can disconnect the internet.
 
 ---
 
-## روش ۱ — با VS Code / Cursor (پیشنهادی)
+## Method 1 — with VS Code / Cursor (recommended)
 
-### الف) Task ترکیبی
+### A) Combined Task
 
-1. پوشه پروژه را در VS Code باز کنید.
+1. Open the project folder in VS Code.
 2. `Ctrl+Shift+P` → **Tasks: Run Task**
-3. انتخاب کنید: **`ICB: Live dashboard (backend + Vite)`**
-4. صبر کنید تا پیام Backend ready و Vite Local ظاهر شود.
-5. مرورگر را باز کنید روی: **http://127.0.0.1:5173**
+3. Select: **`ICB: Live dashboard (backend + Vite)`**
+4. Wait until the Backend ready and Vite Local messages appear.
+5. Open the browser at: **http://127.0.0.1:5173**
 
-یا از منوی **Terminal → Run Build Task** (`Ctrl+Shift+B`) همان Task پیش‌فرض اجرا می‌شود.
+Or from the **Terminal → Run Build Task** menu (`Ctrl+Shift+B`) the same default Task runs.
 
-### ب) دیباگ با مرورگر داخل VS Code
+### B) Debugging with the browser inside VS Code
 
-1. پنل **Run and Debug** (`Ctrl+Shift+D`)
-2. پیکربندی **`ICB: Open dashboard (Edge)`** یا **Chrome**
-3. کلید سبز ▶ یا `F5`
+1. **Run and Debug** panel (`Ctrl+Shift+D`)
+2. Configuration **`ICB: Open dashboard (Edge)`** or **Chrome**
+3. Green ▶ key or `F5`
 
-Backend + Vite بالا می‌آید و داشبورد در مرورگر دیباگ باز می‌شود. درخواست‌های `/api` به‌صورت زنده به Docker می‌روند.
+The Backend + Vite come up and the dashboard opens in the debug browser. `/api` requests go live to Docker.
 
-### ج) Simple Browser داخل ادیتور
+### C) Simple Browser inside the editor
 
 ```
 Ctrl+Shift+P → Simple Browser: Show
@@ -111,20 +111,20 @@ Ctrl+Shift+P → Simple Browser: Show
 
 ---
 
-## روش ۲ — فقط PowerShell
+## Method 2 — PowerShell only
 
 ```powershell
 .\scripts\dev-dashboard.ps1
 ```
 
-این اسکریپت:
+This script:
 
-1. Docker را چک می‌کند
-2. `docker compose up -d` می‌زند
-3. منتظر سالم شدن `http://127.0.0.1:8080/health` می‌ماند
-4. `npm run dev` را در پوشه `web` اجرا می‌کند
+1. Checks Docker
+2. Runs `docker compose up -d`
+3. Waits for `http://127.0.0.1:8080/health` to become healthy
+4. Runs `npm run dev` in the `web` folder
 
-توقف Backend:
+Stopping the Backend:
 
 ```powershell
 docker compose stop
@@ -132,44 +132,44 @@ docker compose stop
 
 ---
 
-## بررسی اتصال به API
+## Checking the API connection
 
-در مرورگر DevTools → Network باید این‌ها `200` باشند:
+In the browser DevTools → Network these should be `200`:
 
 - `GET /api/v1/finance/dashboard`
 - `GET /api/v1/ops/status`
 - `GET /api/v1/maturity/dashboard`
 
-تست سریع در PowerShell:
+Quick test in PowerShell:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8080/health
 Invoke-RestMethod http://127.0.0.1:5173/api/v1/ops/status
 ```
 
-اگر Vite بالا باشد، مسیر دوم از **پروکسی Vite** می‌گذرد (همان مسیر واقعی داشبورد).
+If Vite is up, the second path goes through the **Vite proxy** (the same real path of the dashboard).
 
 ---
 
-## عیب‌یابی
+## Troubleshooting
 
-| مشکل | کار |
+| Problem | Action |
 |:---|:---|
-| Docker Desktop is not running | Docker را باز کنید تا سبز شود |
-| Gateway timeout | `docker compose ps` و `docker compose logs gateway` |
-| داشبورد داده خالی / خطا | Backend هنوز بالا نیامده؛ اسکریپت را دوباره بزنید |
-| پورت 5173 اشغال | پروسس قبلی Vite را ببندید یا `Stop-Process -Name node` |
-| پورت 8080 اشغال | `docker compose down` سپس دوباره up |
-| فونت فارسی عجیب | فایل‌های `web/public/fonts/*.woff2` باید موجود باشند |
+| Docker Desktop is not running | Open Docker until it turns green |
+| Gateway timeout | `docker compose ps` and `docker compose logs gateway` |
+| Dashboard has empty data / error | The Backend is not up yet; run the script again |
+| Port 5173 is occupied | Close the previous Vite process or `Stop-Process -Name node` |
+| Port 8080 is occupied | `docker compose down` then up again |
+| Strange Persian font | The files `web/public/fonts/*.woff2` must exist |
 
 ---
 
-## حالت جایگزین: فقط از گیت‌وی (بدون Vite)
+## Alternative mode: gateway only (without Vite)
 
-اگر استک کامل Compose را با داشبورد Docker بالا بیاورید:
+If you bring up the full Compose stack with the Docker dashboard:
 
 ```powershell
 .\scripts\bootstrap.ps1
 ```
 
-داشبورد روی **http://127.0.0.1:8080** سرو می‌شود (بیلد production). برای توسعه UI با Hot Reload همان روش Vite روی `:5173` بهتر است.
+The dashboard is served at **http://127.0.0.1:8080** (production build). For UI development with Hot Reload, the Vite method on `:5173` is better.

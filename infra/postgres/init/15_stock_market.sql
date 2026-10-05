@@ -1,8 +1,8 @@
--- Stock market tables for شکربن (Iran Carbon Black TSE listing)
+-- Stock market tables for Shekarbon (Iran Carbon Black TSE listing)
 
 CREATE TABLE IF NOT EXISTS finance.stock_quotes (
     time            TIMESTAMPTZ NOT NULL,
-    symbol          VARCHAR(32) NOT NULL DEFAULT 'شکربن',
+    symbol          VARCHAR(32) NOT NULL DEFAULT 'Shekarbon',
     price           DOUBLE PRECISION NOT NULL,
     volume          BIGINT NOT NULL DEFAULT 0,
     value_irr       DOUBLE PRECISION,
@@ -14,7 +14,7 @@ SELECT create_hypertable('finance.stock_quotes', 'time', if_not_exists => TRUE);
 
 CREATE TABLE IF NOT EXISTS finance.stock_daily (
     trade_date      DATE NOT NULL,
-    symbol          VARCHAR(32) NOT NULL DEFAULT 'شکربن',
+    symbol          VARCHAR(32) NOT NULL DEFAULT 'Shekarbon',
     open_price      DOUBLE PRECISION NOT NULL,
     high_price      DOUBLE PRECISION NOT NULL,
     low_price       DOUBLE PRECISION NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS finance.stock_daily (
 CREATE TABLE IF NOT EXISTS finance.stock_trades (
     id              BIGSERIAL PRIMARY KEY,
     traded_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    symbol          VARCHAR(32) NOT NULL DEFAULT 'شکربن',
+    symbol          VARCHAR(32) NOT NULL DEFAULT 'Shekarbon',
     side            VARCHAR(8) NOT NULL,
     price           DOUBLE PRECISION NOT NULL,
     volume          BIGINT NOT NULL,

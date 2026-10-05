@@ -24,7 +24,7 @@ function labelOf(p: StockTick | StockDaily, mode: "intraday" | "daily"): string 
 
 export function StockChart({ points, mode = "intraday", height = 220, up = true }: Props) {
   if (!points.length) {
-    return <div className="empty">داده‌ای برای نمودار نیست.</div>;
+    return <div className="empty">No data for the chart.</div>;
   }
 
   const w = 720;
@@ -51,7 +51,7 @@ export function StockChart({ points, mode = "intraday", height = 220, up = true 
 
   return (
     <div className="stock-chart">
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="نمودار قیمت سهام شکربن">
+      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Shekarbon stock price chart">
         <defs>
           <linearGradient id="stockFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={stroke} stopOpacity="0.35" />
@@ -88,7 +88,7 @@ export function StockChart({ points, mode = "intraday", height = 220, up = true 
         />
       </svg>
       <div className="chart-legend" style={{ color: stroke }}>
-        آخرین: {Math.round(coords[coords.length - 1].value).toLocaleString("fa-IR")} ریال
+        Last: {Math.round(coords[coords.length - 1].value).toLocaleString("fa-IR")} rials
       </div>
     </div>
   );

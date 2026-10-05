@@ -22,8 +22,8 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
 
 export function formatIrr(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
-  if (Math.abs(value) >= 1e9) return `${(value / 1e9).toFixed(1)} میلیارد`;
-  if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(1)} میلیون`;
+  if (Math.abs(value) >= 1e9) return `${(value / 1e9).toFixed(1)} billion`;
+  if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(1)} million`;
   return new Intl.NumberFormat("fa-IR").format(Math.round(value));
 }
 

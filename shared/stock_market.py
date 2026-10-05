@@ -1,4 +1,4 @@
-"""Tehran Stock Exchange — شکربن (Iran Carbon Black) market data helpers."""
+"""Tehran Stock Exchange — Shekarbon (Iran Carbon Black) market data helpers."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ import random
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-# Official listing metadata (TSE / کدال)
+# Official listing metadata (TSE / Codal)
 TICKER = {
-    "symbol_fa": "شکربن",
+    "symbol_fa": "Shekarbon",
     "symbol_en": "SHOKRBAN",
-    "company_fa": "شرکت کربن ایران (سهامی عام)",
+    "company_fa": "Iran Carbon Company (public joint stock)",
     "company_en": "Iran Carbon Black Co.",
     "isin": "IRO1CRBN0001",
-    "market": "بورس — بازار اول (تابلوی فرعی)",
-    "industry": "محصولات شیمیایی / دوده صنعتی",
+    "market": "Stock exchange — First market (secondary board)",
+    "industry": "Chemical products / Carbon black",
     "base_volume": 1_000_000,
     "par_value_irr": 1000,
 }
@@ -108,12 +108,12 @@ def build_static_stock_board() -> dict[str, Any]:
                 "price": t["price"],
                 "volume": t["volume"],
                 "value_irr": t["value_irr"],
-                "broker": "کارگزاری نمونه" if i % 2 == 0 else "معاملات برخط",
+                "broker": "Sample brokerage" if i % 2 == 0 else "Online trading",
             }
         )
 
     return {
-        "source": "TSE listing metadata + live simulator (شکربن)",
+        "source": "TSE listing metadata + live simulator (Shekarbon)",
         "ticker": TICKER,
         "quote": {
             "last_price": last["price"],
@@ -130,7 +130,7 @@ def build_static_stock_board() -> dict[str, Any]:
             "trade_count": len(ticks),
             "as_of": last["time"],
             "trend": "up" if day_change_pct >= 0 else "down",
-            "status": "معاملات پیوسته (شبیه‌سازی لحظه‌ای)",
+            "status": "Continuous trading (real-time simulation)",
         },
         "intraday": ticks,
         "history_daily": history,

@@ -49,8 +49,8 @@ const PRODUCTS_META = [
     variant: "V-7",
     classification: "HAF",
     status: "in_production",
-    label_fa: "دوده N-326 — HAF-LS (V-7)",
-    description_fa: "گرید تقویت‌کننده با ساختار پایین (Low Structure) در خانواده HAF",
+    label_fa: "Carbon black N-326 — HAF-LS (V-7)",
+    description_fa: "Reinforcing grade with low structure (Low Structure) in the HAF family",
   },
   {
     code: "N-234",
@@ -59,8 +59,8 @@ const PRODUCTS_META = [
     variant: "V-6",
     classification: "ISAF",
     status: "in_production",
-    label_fa: "دوده N-234 — ISAF-HM-HS (V-6)",
-    description_fa: "گرید ISAF با ساختار بالا / مدول بالا برای کاربردهای تقویتی سخت",
+    label_fa: "Carbon black N-234 — ISAF-HM-HS (V-6)",
+    description_fa: "ISAF grade with high structure / high modulus for hard reinforcing applications",
   },
   {
     code: "N-220",
@@ -69,8 +69,8 @@ const PRODUCTS_META = [
     variant: null,
     classification: "ISAF",
     status: "in_production",
-    label_fa: "دوده N-220 — ISAF-HM",
-    description_fa: "گرید ISAF استاندارد با مدول بالا؛ محصول اصلی تقویت تایر",
+    label_fa: "Carbon black N-220 — ISAF-HM",
+    description_fa: "Standard high-modulus ISAF grade; the main tire reinforcement product",
   },
   {
     code: "P-8201",
@@ -79,8 +79,8 @@ const PRODUCTS_META = [
     variant: "V3",
     classification: "Specialty",
     status: "in_production",
-    label_fa: "دوده ICJ P-8201 — I.C.C (V3)",
-    description_fa: "گرید تخصصی ICJ / I.C.C برای کاربردهای ویژه صنعتی",
+    label_fa: "Carbon black ICJ P-8201 — I.C.C (V3)",
+    description_fa: "Specialty ICJ / I.C.C grade for special industrial applications",
   },
   {
     code: "N-330-SV",
@@ -89,8 +89,8 @@ const PRODUCTS_META = [
     variant: "S-V",
     classification: "HAF",
     status: "in_production",
-    label_fa: "دوده N-330 — S-V",
-    description_fa: "گرید N-330 با مشخصات واریانت S-V",
+    label_fa: "Carbon black N-330 — S-V",
+    description_fa: "N-330 grade with S-V variant specifications",
   },
   {
     code: "N-660",
@@ -99,8 +99,8 @@ const PRODUCTS_META = [
     variant: "S-SO",
     classification: "GPF",
     status: "in_production",
-    label_fa: "دوده N-660 — GPF (S-SO)",
-    description_fa: "گرید GPF برای کاربردهای عمومی و پرکننده",
+    label_fa: "Carbon black N-660 — GPF (S-SO)",
+    description_fa: "GPF grade for general-purpose and filler applications",
   },
   {
     code: "N-550-ICC",
@@ -109,8 +109,8 @@ const PRODUCTS_META = [
     variant: "S-SO",
     classification: "FEF",
     status: "in_production",
-    label_fa: "دوده N-550 — FEF I.C.C (S-SO)",
-    description_fa: "گرید FEF با مشخصات I.C.C / S-SO",
+    label_fa: "Carbon black N-550 — FEF I.C.C (S-SO)",
+    description_fa: "FEF grade with I.C.C / S-SO specifications",
   },
   {
     code: "N-550-VJ",
@@ -119,8 +119,8 @@ const PRODUCTS_META = [
     variant: "V-J",
     classification: "FEF",
     status: "in_production",
-    label_fa: "دوده N-550 — V-J",
-    description_fa: "گرید N-550 با واریانت V-J",
+    label_fa: "Carbon black N-550 — V-J",
+    description_fa: "N-550 grade with V-J variant",
   },
   {
     code: "N-375",
@@ -129,8 +129,8 @@ const PRODUCTS_META = [
     variant: "V-M",
     classification: "HAF",
     status: "in_production",
-    label_fa: "دوده N-375 — HAF-HS (V-M)",
-    description_fa: "گرید HAF با ساختار بالا (High Structure)",
+    label_fa: "Carbon black N-375 — HAF-HS (V-M)",
+    description_fa: "HAF grade with high structure (High Structure)",
   },
   {
     code: "N-339",
@@ -139,8 +139,8 @@ const PRODUCTS_META = [
     variant: "V-3",
     classification: "HAF",
     status: "in_production",
-    label_fa: "دوده N-339 — HAF-HS (V-3)",
-    description_fa: "گرید HAF-HS استاندارد برای تایر و قطعات لاستیکی",
+    label_fa: "Carbon black N-339 — HAF-HS (V-3)",
+    description_fa: "Standard HAF-HS grade for tires and rubber parts",
   },
   {
     code: "N-330",
@@ -149,8 +149,8 @@ const PRODUCTS_META = [
     variant: null,
     classification: "HAF",
     status: "in_production",
-    label_fa: "دوده N-330 — HAF",
-    description_fa: "گرید HAF کلاسیک N-330؛ پرکاربرد در صنعت تایر",
+    label_fa: "Carbon black N-330 — HAF",
+    description_fa: "Classic HAF grade N-330; widely used in the tire industry",
   },
 ] as const;
 
@@ -165,7 +165,7 @@ const SPEC_ROWS: Array<{
   {
     id: "iodine_no",
     label_en: "Iodine No.",
-    label_fa: "عدد ید",
+    label_fa: "Iodine number",
     unit: "mg/g",
     astm: "D-1510",
     values: [
@@ -185,7 +185,7 @@ const SPEC_ROWS: Array<{
   {
     id: "oil_absorption_dbp",
     label_en: "Oil Absorption Number (DBP)",
-    label_fa: "جذب روغن (DBP)",
+    label_fa: "Oil absorption (DBP)",
     unit: "ml/100g",
     astm: "D-2414",
     values: [
@@ -205,7 +205,7 @@ const SPEC_ROWS: Array<{
   {
     id: "tint_strength",
     label_en: "Tint Strength",
-    label_fa: "قدرت رنگ‌دهی",
+    label_fa: "Tint strength",
     unit: "%IRB#3",
     astm: "D-3265",
     values: [
@@ -225,7 +225,7 @@ const SPEC_ROWS: Array<{
   {
     id: "pour_density",
     label_en: "Pour Density",
-    label_fa: "چگالی ریزشی",
+    label_fa: "Pour density",
     unit: "Kg/m³",
     astm: "D-1513",
     values: [
@@ -245,7 +245,7 @@ const SPEC_ROWS: Array<{
   {
     id: "toluene_discoloration",
     label_en: "Toluene Solvent Discoloration",
-    label_fa: "تغییر رنگ حلال تولوئن",
+    label_fa: "Toluene discoloration",
     unit: "T%",
     astm: "D-1618",
     values: [
@@ -285,7 +285,7 @@ const SPEC_ROWS: Array<{
   {
     id: "fines_content",
     label_en: "Fines Content",
-    label_fa: "محتوای ذرات ریز",
+    label_fa: "Fines content",
     unit: "%",
     astm: "D-1508",
     values: [
@@ -305,7 +305,7 @@ const SPEC_ROWS: Array<{
   {
     id: "heating_loss",
     label_en: "Heating Loss",
-    label_fa: "افت حرارتی",
+    label_fa: "Heat loss",
     unit: "%",
     astm: "D-1509",
     values: [
@@ -325,7 +325,7 @@ const SPEC_ROWS: Array<{
   {
     id: "sieve_residue_325",
     label_en: "Sieve Residue 325 Mesh",
-    label_fa: "باقیمانده الک ۳۲۵ مش",
+    label_fa: "325 mesh sieve residue",
     unit: "ppm",
     astm: "D-1514",
     values: [
@@ -345,7 +345,7 @@ const SPEC_ROWS: Array<{
   {
     id: "ash",
     label_en: "Ash",
-    label_fa: "خاکستر",
+    label_fa: "Ash",
     unit: "%",
     astm: "D-1506",
     values: [
@@ -365,7 +365,7 @@ const SPEC_ROWS: Array<{
   {
     id: "sulfur",
     label_en: "Sulfur",
-    label_fa: "گوگرد",
+    label_fa: "Sulfur",
     unit: "%",
     astm: "D-1619",
     values: [
@@ -385,7 +385,7 @@ const SPEC_ROWS: Array<{
   {
     id: "n2_surface_area",
     label_en: "N₂ Surface Area",
-    label_fa: "سطح ویژه نیتروژن",
+    label_fa: "Nitrogen surface area",
     unit: "m²/g",
     astm: "D-6556",
     values: [
@@ -405,7 +405,7 @@ const SPEC_ROWS: Array<{
   {
     id: "pellet_hardness_avg",
     label_en: "Individual Pellet Hardness — Average (20 pellets)",
-    label_fa: "سختی پلت — میانگین (۲۰ پلت)",
+    label_fa: "Pellet hardness — mean (20 pellets)",
     unit: "gf",
     astm: "D-3313",
     values: [
@@ -425,7 +425,7 @@ const SPEC_ROWS: Array<{
   {
     id: "pellet_hardness_max",
     label_en: "Individual Pellet Hardness — Maximum (20 pellets)",
-    label_fa: "سختی پلت — حداکثر (۲۰ پلت)",
+    label_fa: "Pellet hardness — max (20 pellets)",
     unit: "gf",
     astm: "D-3313",
     values: Array(11).fill("50"),

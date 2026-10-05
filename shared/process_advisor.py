@@ -57,28 +57,28 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "increase_quench_or_reduce_oil",
-                "action_fa": "کاهش دبی روغن خوراک ۳–۵٪ و/یا افزایش آب کوئنچ",
+                "action_fa": "Reduce feed oil flow by 3–5% and/or increase quench water",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"oil_feed_rate_delta_pct": -4, "quench_water_flow_delta_pct": 6},
-                "expected_effect_fa": "کاهش دمای ناحیه واکنش به داخل باند عملیاتی",
-                "risk_fa": "کاهش بیش از حد روغن ممکن است کیفیت ساختار را تغییر دهد",
+                "expected_effect_fa": "Reduce the reaction zone temperature into the operating band",
+                "risk_fa": "Reducing oil too much may change the structure quality",
             },
             {
                 "action_id": "verify_thermocouple",
-                "action_fa": "بازرسی دستی ترموکوپل / کالیبراسیون",
+                "action_fa": "Manual thermocouple inspection / calibration",
                 "mode": "manual_only",
-                "expected_effect_fa": "حذف هشدار کاذب ناشی از سنسور معیوب",
-                "risk_fa": "نیاز به توقف کوتاه اندازه‌گیری",
+                "expected_effect_fa": "Eliminate a false alarm caused by a faulty sensor",
+                "risk_fa": "Requires a short interruption of measurement",
             },
         ],
         "low": [
             {
                 "action_id": "increase_oil_or_air",
-                "action_fa": "افزایش کنترل‌شده دبی روغن یا هوا برای بازیابی دما",
+                "action_fa": "Controlled increase of oil or air flow to recover temperature",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"oil_feed_rate_delta_pct": 3, "air_flow_delta_pct": 2},
-                "expected_effect_fa": "بازگشت دما به محدوده عملیاتی",
-                "risk_fa": "افزایش ناگهانی ممکن است فشار را بالا ببرد",
+                "expected_effect_fa": "Temperature returns to the operating range",
+                "risk_fa": "A sudden increase may raise the pressure",
             },
         ],
     },
@@ -86,21 +86,21 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "trim_oil_feed",
-                "action_fa": "کاهش ست‌پوینت دبی روغن به لبه بالای مجاز",
+                "action_fa": "Reduce the oil flow setpoint to the upper allowed edge",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"oil_feed_rate_target": "max_op"},
-                "expected_effect_fa": "بازگشت دبی به رنج و کاهش بار حرارتی",
-                "risk_fa": "کاهش تولید لحظه‌ای",
+                "expected_effect_fa": "Flow returns to range and thermal load decreases",
+                "risk_fa": "Momentary production reduction",
             },
         ],
         "low": [
             {
                 "action_id": "raise_oil_feed",
-                "action_fa": "افزایش تدریجی دبی روغن تا حداقل عملیاتی +۲٪",
+                "action_fa": "Gradually increase oil flow to the operating minimum +2%",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"oil_feed_rate_delta_pct": 2},
-                "expected_effect_fa": "پایداری شعله و کیفیت گرید",
-                "risk_fa": "نوسان کوتاه‌مدت فشار",
+                "expected_effect_fa": "Flame stability and grade quality",
+                "risk_fa": "Short-term pressure fluctuation",
             },
         ],
     },
@@ -108,21 +108,21 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "reduce_air_damper",
-                "action_fa": "بستن جزئی دمپر هوا / کاهش ست‌پوینت دبی هوا",
+                "action_fa": "Partially close the air damper / reduce the air flow setpoint",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"air_flow_delta_pct": -5},
-                "expected_effect_fa": "نسبت سوخت-هوا به محدوده بازمی‌گردد",
-                "risk_fa": "دود ناقص در صورت کاهش بیش از حد",
+                "expected_effect_fa": "The fuel-air ratio returns to range",
+                "risk_fa": "Incomplete smoke if reduced too much",
             },
         ],
         "low": [
             {
                 "action_id": "open_air_damper",
-                "action_fa": "باز کردن دمپر هوا برای افزایش دبی",
+                "action_fa": "Open the air damper to increase flow",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"air_flow_delta_pct": 5},
-                "expected_effect_fa": "احتراق کامل‌تر و کنترل دوده",
-                "risk_fa": "خنک‌شدن بیش از حد ناحیه واکنش",
+                "expected_effect_fa": "More complete combustion and soot control",
+                "risk_fa": "Excessive cooling of the reaction zone",
             },
         ],
     },
@@ -130,27 +130,27 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "relieve_bag_or_fan",
-                "action_fa": "پالس پاکسازی فیلتر / افزایش دور فن القایی",
+                "action_fa": "Filter cleaning pulse / increase induced fan speed",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"fan_speed_delta_pct": 4, "bag_pulse": True},
-                "expected_effect_fa": "افت فشار دیفرانسیلی به محدوده برمی‌گردد",
-                "risk_fa": "سایش کیسه فیلتر در پالس مکرر",
+                "expected_effect_fa": "Differential pressure drop returns to range",
+                "risk_fa": "Filter bag wear from repeated pulses",
             },
             {
                 "action_id": "inspect_duct_blockage",
-                "action_fa": "بازرسی دستی مسیر گاز و گرفتگی داکت",
+                "action_fa": "Manual inspection of the gas path and duct blockage",
                 "mode": "manual_only",
-                "expected_effect_fa": "رفع گرفتگی فیزیکی",
-                "risk_fa": "نیاز به دسترسی ایمن به خط",
+                "expected_effect_fa": "Remove the physical blockage",
+                "risk_fa": "Requires safe access to the line",
             },
         ],
         "low": [
             {
                 "action_id": "check_leak_seal",
-                "action_fa": "بررسی نشتی فلنج / آب‌بند و تنظیم فن",
+                "action_fa": "Check flange leaks / seals and adjust the fan",
                 "mode": "manual_only",
-                "expected_effect_fa": "بازیابی فشار خط",
-                "risk_fa": "ورود هوای اضافی ناخواسته",
+                "expected_effect_fa": "Restore line pressure",
+                "risk_fa": "Unwanted entry of excess air",
             },
         ],
     },
@@ -158,18 +158,18 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "reduce_fan_speed",
-                "action_fa": "کاهش دور فن و ثبت طیف ارتعاش",
+                "action_fa": "Reduce fan speed and record the vibration spectrum",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"fan_speed_delta_pct": -8},
-                "expected_effect_fa": "کاهش دامنه ارتعاش تا زیر حد",
-                "risk_fa": "کاهش مکش گاز",
+                "expected_effect_fa": "Vibration amplitude reduced below the limit",
+                "risk_fa": "Reduced gas suction",
             },
             {
                 "action_id": "mechanical_balance_check",
-                "action_fa": "بازرسی یاتاقان / بالانس مکانیکی (دستی)",
+                "action_fa": "Bearing inspection / mechanical balancing (manual)",
                 "mode": "manual_only",
-                "expected_effect_fa": "رفع ریشه ارتعاش",
-                "risk_fa": "توقف برنامه‌ریزی‌شده",
+                "expected_effect_fa": "Eliminate the root of the vibration",
+                "risk_fa": "Planned shutdown",
             },
         ],
         "low": [],
@@ -178,21 +178,21 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "raise_dryer_temp",
-                "action_fa": "افزایش دمای خشک‌کن ۲–۴٪",
+                "action_fa": "Increase the dryer temperature by 2–4%",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"dryer_temp_delta_pct": 3},
-                "expected_effect_fa": "کاهش رطوبت محصول به مشخصات",
-                "risk_fa": "مصرف انرژی بالاتر",
+                "expected_effect_fa": "Reduce product moisture to specification",
+                "risk_fa": "Higher energy consumption",
             },
         ],
         "low": [
             {
                 "action_id": "trim_dryer_temp",
-                "action_fa": "کاهش ملایم دمای خشک‌کن برای جلوگیری از overdry",
+                "action_fa": "Gently reduce the dryer temperature to prevent overdrying",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"dryer_temp_delta_pct": -2},
-                "expected_effect_fa": "پایداری کیفیت و صرفه‌جویی انرژی",
-                "risk_fa": "رطوبت ممکن است دوباره بالا برود",
+                "expected_effect_fa": "Quality stability and energy saving",
+                "risk_fa": "Moisture may rise again",
             },
         ],
     },
@@ -200,21 +200,21 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "trim_quench",
-                "action_fa": "کاهش دبی آب کوئنچ به باند مجاز",
+                "action_fa": "Reduce quench water flow to the allowed band",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"quench_water_flow_delta_pct": -5},
-                "expected_effect_fa": "کنترل دمای دود و مصرف آب",
-                "risk_fa": "دمای گاز خروجی ممکن است بالا برود",
+                "expected_effect_fa": "Control of smoke temperature and water consumption",
+                "risk_fa": "Outlet gas temperature may rise",
             },
         ],
         "low": [
             {
                 "action_id": "boost_quench",
-                "action_fa": "افزایش دبی آب کوئنچ",
+                "action_fa": "Increase quench water flow",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"quench_water_flow_delta_pct": 6},
-                "expected_effect_fa": "محافظت حرارتی پایین‌دست",
-                "risk_fa": "بار پمپ و مصرف آب",
+                "expected_effect_fa": "Downstream thermal protection",
+                "risk_fa": "Pump load and water consumption",
             },
         ],
     },
@@ -222,18 +222,18 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "high": [
             {
                 "action_id": "shed_motor_load",
-                "action_fa": "کاهش بار موتور / بررسی overload",
+                "action_fa": "Reduce motor load / check overload",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"motor_load_delta_pct": -5},
-                "expected_effect_fa": "جریان به محدوده ایمن برمی‌گردد",
-                "risk_fa": "کاهش ظرفیت انتقال",
+                "expected_effect_fa": "Current returns to the safe range",
+                "risk_fa": "Reduced conveying capacity",
             },
             {
                 "action_id": "electrician_inspection",
-                "action_fa": "بازرسی الکتریکی توسط اپراتور ارشد (دستی)",
+                "action_fa": "Electrical inspection by the senior operator (manual)",
                 "mode": "manual_only",
-                "expected_effect_fa": "تشخیص اتصال کوتاه / یاتاقان گیر",
-                "risk_fa": "نیاز به LOTO",
+                "expected_effect_fa": "Diagnose a short circuit / seized bearing",
+                "risk_fa": "LOTO required",
             },
         ],
         "low": [],
@@ -242,27 +242,27 @@ _PLAYBOOK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "low": [
             {
                 "action_id": "protect_lubrication",
-                "action_fa": "هشدار حفاظت روغن — کاهش دور و آلارم اتاق کنترل",
+                "action_fa": "Oil protection alarm — reduce speed and control room alarm",
                 "mode": "auto_eligible",
                 "setpoint_hint": {"fan_speed_delta_pct": -10, "interlock": "lube_low"},
-                "expected_effect_fa": "جلوگیری از آسیب یاتاقان",
-                "risk_fa": "کاهش ظرفیت خط",
+                "expected_effect_fa": "Prevent bearing damage",
+                "risk_fa": "Reduced line capacity",
             },
             {
                 "action_id": "check_lube_pump",
-                "action_fa": "بازرسی پمپ روغن و فیلتر (دستی)",
+                "action_fa": "Inspect the oil pump and filter (manual)",
                 "mode": "manual_only",
-                "expected_effect_fa": "رفع علت فشار پایین",
-                "risk_fa": "توقف جزئی",
+                "expected_effect_fa": "Eliminate the cause of low pressure",
+                "risk_fa": "Partial shutdown",
             },
         ],
         "high": [
             {
                 "action_id": "relieve_lube_pressure",
-                "action_fa": "بررسی رگلاتور فشار روغن",
+                "action_fa": "Check the oil pressure regulator",
                 "mode": "manual_only",
-                "expected_effect_fa": "فشار به باند مجاز",
-                "risk_fa": "نشتی احتمالی",
+                "expected_effect_fa": "Pressure to the allowed band",
+                "risk_fa": "Possible leak",
             },
         ],
     },
@@ -274,45 +274,45 @@ def _generic_actions(direction: str, severity: str) -> list[dict[str, Any]]:
         return [
             {
                 "action_id": "nudge_setpoint_down",
-                "action_fa": "کاهش تدریجی ست‌پوینت مرتبط تا بازگشت به رنج",
+                "action_fa": "Gradually reduce the related setpoint until it returns to range",
                 "mode": "auto_eligible" if severity == "critical" else "manual_only",
                 "setpoint_hint": {"generic_delta_pct": -4},
-                "expected_effect_fa": "بازگشت مقدار اندازه‌گیری به باند عملیاتی",
-                "risk_fa": "اثر جانبی روی کیفیت بچ",
+                "expected_effect_fa": "The measured value returns to the operating band",
+                "risk_fa": "Side effect on batch quality",
             },
             {
                 "action_id": "operator_verify",
-                "action_fa": "تأیید میدانی توسط اپراتور و ثبت در لاگ شیفت",
+                "action_fa": "Field confirmation by the operator and logging in the shift log",
                 "mode": "manual_only",
-                "expected_effect_fa": "اعتبارسنجی هشدار",
-                "risk_fa": "تأخیر واکنش",
+                "expected_effect_fa": "Alert validation",
+                "risk_fa": "Delayed response",
             },
         ]
     if direction == "low":
         return [
             {
                 "action_id": "nudge_setpoint_up",
-                "action_fa": "افزایش تدریجی ست‌پوینت مرتبط تا حداقل عملیاتی",
+                "action_fa": "Gradually increase the related setpoint to the operating minimum",
                 "mode": "auto_eligible" if severity == "critical" else "manual_only",
                 "setpoint_hint": {"generic_delta_pct": 4},
-                "expected_effect_fa": "بازگشت به باند عملیاتی",
-                "risk_fa": "نوسان کوتاه‌مدت فرآیند",
+                "expected_effect_fa": "Return to the operating band",
+                "risk_fa": "Short-term process fluctuation",
             },
             {
                 "action_id": "operator_verify",
-                "action_fa": "تأیید میدانی توسط اپراتور و ثبت در لاگ شیفت",
+                "action_fa": "Field confirmation by the operator and logging in the shift log",
                 "mode": "manual_only",
-                "expected_effect_fa": "اعتبارسنجی هشدار",
-                "risk_fa": "تأخیر واکنش",
+                "expected_effect_fa": "Alert validation",
+                "risk_fa": "Delayed response",
             },
         ]
     return [
         {
             "action_id": "monitor",
-            "action_fa": "پایش مداوم — اقدام فوری لازم نیست",
+            "action_fa": "Continuous monitoring — no immediate action needed",
             "mode": "manual_only",
-            "expected_effect_fa": "جلوگیری از اقدام نادرست",
-            "risk_fa": "کم",
+            "expected_effect_fa": "Prevent incorrect action",
+            "risk_fa": "Low",
         }
     ]
 
@@ -403,12 +403,12 @@ def apply_recommendation(
             chosen = recs[0]
 
     if chosen is None:
-        return {"status": "rejected", "reason_fa": "پیشنهادی موجود نیست"}
+        return {"status": "rejected", "reason_fa": "No suggestion available"}
 
     if mode == "auto" and not chosen.get("auto_eligible"):
         return {
             "status": "skipped",
-            "reason_fa": "این اقدام فقط دستی است — Auto Pilot اجرا نکرد",
+            "reason_fa": "This action is manual only — Auto Pilot did not execute it",
             "recommendation": chosen,
         }
 
@@ -441,7 +441,7 @@ def run_autopilot_pass(alerts: list[dict[str, Any]]) -> dict[str, Any]:
             "autopilot": False,
             "applied": [],
             "skipped": len(alerts),
-            "message_fa": "Auto Pilot خاموش است — فقط پیشنهاد نمایش داده می‌شود",
+            "message_fa": "Auto Pilot is off — only suggestions are shown",
         }
     applied = []
     skipped = 0
@@ -474,5 +474,5 @@ def run_autopilot_pass(alerts: list[dict[str, Any]]) -> dict[str, Any]:
         "autopilot": True,
         "applied": applied,
         "skipped": skipped,
-        "message_fa": f"Auto Pilot: {len(applied)} اقدام خودکار · {skipped} رد/معوق",
+        "message_fa": f"Auto Pilot: {len(applied)} automatic actions · {skipped} rejected/deferred",
     }

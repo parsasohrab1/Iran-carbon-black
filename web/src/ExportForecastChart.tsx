@@ -7,7 +7,7 @@ type Props = {
 
 export function ExportForecastChart({ rows, height = 200 }: Props) {
   if (!rows.length) {
-    return <div className="empty">داده‌ای برای پیش‌بینی نیست.</div>;
+    return <div className="empty">No data for the forecast.</div>;
   }
 
   const w = 720;
@@ -35,7 +35,7 @@ export function ExportForecastChart({ rows, height = 200 }: Props) {
 
   return (
     <div className="stock-chart">
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="نمودار پیش‌بینی صادرات">
+      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Export forecast chart">
         <defs>
           <linearGradient id="exportFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0f766e" stopOpacity="0.35" />
@@ -66,7 +66,7 @@ export function ExportForecastChart({ rows, height = 200 }: Props) {
         ))}
       </svg>
       <div className="chart-legend">
-        خط ممتد: پیش‌بینی کل (تن) · خط‌چین: پایه بازارهای بالفعل · محور: تن در ماه
+        Solid line: total forecast (tons) · dashed line: actual markets baseline · axis: tons per month
       </div>
     </div>
   );

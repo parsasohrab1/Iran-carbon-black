@@ -98,7 +98,7 @@ def main() -> None:
                 call(
                     "POST",
                     "/api/v1/supply/purchase/advice",
-                    {"material": "قطران (فورفورال اکسترکت)", "horizon_days": 90},
+                    {"material": "Coal tar (furfural extract)", "horizon_days": 90},
                 ),
             ),
         ]

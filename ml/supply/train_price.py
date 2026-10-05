@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler
 
 MODEL_VERSION = "supply-price-gbr-v1"
 
-MATERIALS = ["قطران (فورفورال اکسترکت)", "نفتا"]
+MATERIALS = ["Coal tar (furfural extract)", "Naphtha"]
 
 
 def _dataset(rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:

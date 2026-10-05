@@ -1,4 +1,4 @@
-/** Offline/static fallback for شکربن TSE board. */
+/** Offline/static fallback for Shekarbon TSE board. */
 
 export type StockTicker = {
   symbol_fa: string;
@@ -100,15 +100,15 @@ export function buildLocalStockBoard(): StockBoard {
   const last = intraday[intraday.length - 1];
   const first = intraday[0];
   return {
-    source: "static شکربن board",
+    source: "static Shekarbon board",
     ticker: {
-      symbol_fa: "شکربن",
+      symbol_fa: "Shekarbon",
       symbol_en: "SHOKRBAN",
-      company_fa: "شرکت کربن ایران (سهامی عام)",
+      company_fa: "Iran Carbon Company (public joint stock)",
       company_en: "Iran Carbon Black Co.",
       isin: "IRO1CRBN0001",
-      market: "بورس — بازار اول (تابلوی فرعی)",
-      industry: "محصولات شیمیایی / دوده صنعتی",
+      market: "Stock exchange — First market (secondary board)",
+      industry: "Chemical products / Carbon black",
     },
     quote: {
       last_price: last.price,
@@ -125,7 +125,7 @@ export function buildLocalStockBoard(): StockBoard {
       trade_count: intraday.length,
       as_of: last.time,
       trend: last.price >= first.price ? "up" : "down",
-      status: "شبیه‌سازی لحظه‌ای (آفلاین)",
+      status: "Real-time simulation (offline)",
     },
     intraday,
     history_daily,
@@ -136,7 +136,7 @@ export function buildLocalStockBoard(): StockBoard {
       price: t.price,
       volume: t.volume,
       value_irr: t.price * t.volume,
-      broker: i % 2 ? "کارگزاری آگاه" : "کارگزاری مفید",
+      broker: i % 2 ? "Mofid Brokerage" : "Agah Brokerage",
     })),
     order_book: {
       bids: [1, 2, 3, 4, 5].map((i) => ({ price: last.price - i * 50, volume: 100000 * (6 - i) })),

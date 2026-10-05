@@ -93,8 +93,8 @@ export type MarketScenarioBoard = {
 const PRESETS = [
   {
     id: "baseline",
-    name_fa: "پایه (بازار جاری)",
-    description_fa: "نرخ ارز، طلا، نفت و خوراک در سطح مرجع.",
+    name_fa: "Baseline (current market)",
+    description_fa: "Exchange rate, gold, oil and feedstock at the reference level.",
     usd_irr_delta_pct: 0,
     gold_delta_pct: 0,
     oil_delta_pct: 0,
@@ -102,8 +102,8 @@ const PRESETS = [
   },
   {
     id: "usd_shock",
-    name_fa: "شوک دلار (ارز↑)",
-    description_fa: "ضعف ریال → اولویت صادرات و گریدهای ارزی.",
+    name_fa: "Dollar shock (FX↑)",
+    description_fa: "Rial weakness → priority to exports and FX-linked grades.",
     usd_irr_delta_pct: 18,
     gold_delta_pct: 8,
     oil_delta_pct: 4,
@@ -111,8 +111,8 @@ const PRESETS = [
   },
   {
     id: "gold_oil_up",
-    name_fa: "طلا و نفت صعودی",
-    description_fa: "فشار تورم خوراک؛ تولید سبک‌تر و صف فروش اول.",
+    name_fa: "Gold and oil rally",
+    description_fa: "Feedstock inflation pressure; lighter production and sales queue first.",
     usd_irr_delta_pct: 5,
     gold_delta_pct: 15,
     oil_delta_pct: 20,
@@ -120,8 +120,8 @@ const PRESETS = [
   },
   {
     id: "feedstock_spike",
-    name_fa: "جهش قیمت مواد خام",
-    description_fa: "توقف انبار؛ تمرکز پرمارژین و تخلیه موجودی نرم.",
+    name_fa: "Raw material price spike",
+    description_fa: "Warehouse halt; focus on high margin and soft inventory drawdown.",
     usd_irr_delta_pct: 3,
     gold_delta_pct: 5,
     oil_delta_pct: 12,
@@ -129,8 +129,8 @@ const PRESETS = [
   },
   {
     id: "soft_landing",
-    name_fa: "فرود نرم (کالا↓)",
-    description_fa: "پیش‌خرید مواد بدون صف خرید؛ پوشش صف فروش.",
+    name_fa: "Soft landing (commodities↓)",
+    description_fa: "Pre-buy materials without a purchase queue; sales queue coverage.",
     usd_irr_delta_pct: -6,
     gold_delta_pct: -4,
     oil_delta_pct: -10,
@@ -140,31 +140,31 @@ const PRESETS = [
 
 export function actionLabelFa(action: string): string {
   const map: Record<string, string> = {
-    produce_for_sales_queue: "تولید برای صف فروش",
-    drawdown_inventory: "تخلیه انبار",
-    hold_low_margin: "توقف کم‌مارژین",
-    produce_queue_only: "فقط صف فروش",
-    produce_and_prebuy_feed: "تولید + پیش‌خرید مواد",
-    boost_export_grade: "افزایش صادراتی",
-    trim_to_demand: "کاهش تا تقاضا",
-    balanced_produce: "تولید متوازن",
+    produce_for_sales_queue: "Produce for sales queue",
+    drawdown_inventory: "Draw down inventory",
+    hold_low_margin: "Hold low margin",
+    produce_queue_only: "Sales queue only",
+    produce_and_prebuy_feed: "Produce + pre-buy materials",
+    boost_export_grade: "Boost exports",
+    trim_to_demand: "Trim to demand",
+    balanced_produce: "Balanced production",
   };
   return map[action] ?? action;
 }
 
 export function buyAdviceLabelFa(advice: string): string {
   const map: Record<string, string> = {
-    hold: "نگهداری",
-    prebuy_window: "پنجره پیش‌خرید",
-    delay_noncritical: "تأخیر خرید",
-    buy_for_queue: "خرید برای صف فروش",
+    hold: "Hold",
+    prebuy_window: "Pre-buy window",
+    delay_noncritical: "Delay purchase",
+    buy_for_queue: "Buy for sales queue",
   };
   return map[advice] ?? advice;
 }
 
 export function riskTone(risk: string): "ok" | "warn" | "danger" {
-  if (risk === "کم") return "ok";
-  if (risk === "متوسط") return "warn";
+  if (risk === "Low") return "ok";
+  if (risk === "Medium") return "warn";
   return "danger";
 }
 
@@ -208,19 +208,19 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
     const excess = Math.max(0, s.inv - daily * 20);
     const produce = Math.max(s.q * 1.05, demand - excess * 0.85);
     let action = "balanced_produce";
-    let reason = "تولید متوازن با پوشش صف فروش و کنترل موجودی";
+    let reason = "Balanced production with sales queue coverage and inventory control";
     if (s.q > 5000 && s.inv < s.q * 0.5) {
       action = "produce_for_sales_queue";
-      reason = "اولویت صف فروش — موجودی ناکافی";
+      reason = "Sales queue priority — insufficient inventory";
     } else if (s.inv / daily > 45 && s.q < 3000) {
       action = "drawdown_inventory";
-      reason = "انبار بالا — جلوگیری از انبارداری";
+      reason = "High warehouse stock — preventing warehousing";
     } else if (cost > 1.15 && margin < 0.09) {
       action = "hold_low_margin";
-      reason = "خوراک گران و حاشیه پایین";
+      reason = "Expensive feedstock and low margin";
     } else if (fx > 1.1 && margin >= 0.12) {
       action = "boost_export_grade";
-      reason = "دلار↑ — افزایش سهم صادراتی";
+      reason = "Dollar↑ — increase the export share";
     }
     const buy =
       current.feedstock_basket_irr / base.feedstock_basket_irr < 0.95
@@ -258,9 +258,9 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
   const total_queue = grades.reduce((s, g) => s + g.sales_queue_kg, 0);
   const total_excess = grades.reduce((s, g) => s + g.excess_inventory_kg, 0);
   const total_feed = grades.reduce((s, g) => s + g.feedstock_need_kg, 0);
-  const warehouse_risk = total_excess > 250000 ? "بالا" : total_excess > 100000 ? "متوسط" : "کم";
-  const sales_queue_risk = total_queue > 80000 ? "متوسط" : "کم";
-  const purchase_queue_risk = cost > 1.15 ? "متوسط" : "کم";
+  const warehouse_risk = total_excess > 250000 ? "High" : total_excess > 100000 ? "Medium" : "Low";
+  const sales_queue_risk = total_queue > 80000 ? "Medium" : "Low";
+  const purchase_queue_risk = cost > 1.15 ? "Medium" : "Low";
   const avgSell = 185000;
   const feedPrice = current.feedstock_basket_irr;
   const estimated_revenue_irr = Math.round(total_produce * avgSell);
@@ -280,8 +280,8 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
     warehouse_risk,
     sales_queue_risk,
     purchase_queue_risk,
-    balance_score: 100 - (warehouse_risk === "بالا" ? 10 : 5) - (sales_queue_risk === "متوسط" ? 6 : 0),
-    policy_fa: "اولویت ۱: پوشش صف فروش · اولویت ۲: عدم انبار · اولویت ۳: خرید مواد فقط برای برنامه",
+    balance_score: 100 - (warehouse_risk === "High" ? 10 : 5) - (sales_queue_risk === "Medium" ? 6 : 0),
+    policy_fa: "Priority 1: sales queue coverage · Priority 2: no warehousing · Priority 3: material purchasing only for the plan",
     estimated_revenue_irr,
     estimated_feed_cost_irr,
     estimated_gross_profit_irr,
@@ -331,7 +331,7 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
   });
 
   return {
-    source: "آفلاین — نوسان دلار/طلا/نفت/مواد خام → سناریوی تولید",
+    source: "Offline — dollar/gold/oil/raw material volatility → production scenario",
     plan_date: new Date().toISOString().slice(0, 10),
     horizon_days: 30,
     selected_scenario: {
@@ -368,9 +368,9 @@ export function buildLocalMarketScenarioBoard(scenarioId = "baseline"): MarketSc
         note_fa: buyAdviceLabelFa(g.feedstock_buy_advice),
       })),
     objectives_fa: [
-      "جلوگیری از انبارداری محصول نهایی",
-      "جلوگیری از صف خرید مواد خام",
-      "جلوگیری از صف فروش / سفارش مشتری پاسخ‌نداده",
+      "Preventing finished-product warehousing",
+      "Preventing a raw material purchase backlog",
+      "Preventing unanswered sales backlog / customer orders",
     ],
   };
 }
